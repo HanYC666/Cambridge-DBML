@@ -12,7 +12,7 @@ First, clone the repository and navigate into the backend directory:
 
 ```bash
 git clone https://github.com/HanYC666/Cambridge-DBML.git
-cd Cambridge-DBML/backend
+cd Cambridge-DBML
 
 ```
 
