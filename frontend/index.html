@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cambridge SQL IDE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="top">
+    
+    <!-- EDITOR -->
+    <div class="panel editor">
+        <div class="header">SQL Editor</div>
+        <textarea id="editor"></textarea>
+        <button onclick="runSQL()">Run</button>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="panel output">
+        <div class="header">Output / Errors</div>
+        <pre id="output"></pre>
+    </div>
+
+</div>
+
+<!-- BOTTOM DATABASE VIEWER -->
+<div class="bottom">
+    <div class="header">Database Viewer</div>
+    <div id="tables"></div>
+    <div id="table-data"></div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

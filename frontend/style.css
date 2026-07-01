@@ -1,0 +1,74 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* TOP SPLIT */
+.top {
+    display: flex;
+    height: 50%;
+    border-bottom: 2px solid #333;
+}
+
+/* PANELS */
+.panel {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ccc;
+}
+
+/* HEADERS */
+.header {
+    background: #222;
+    color: white;
+    padding: 8px;
+}
+
+/* EDITOR */
+textarea {
+    flex: 1;
+    resize: none;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* OUTPUT */
+.output pre {
+    margin: 0;
+    padding: 10px;
+    overflow: auto;
+    height: 100%;
+}
+
+/* BUTTON */
+button {
+    padding: 10px;
+    border: none;
+    background: #2d6cdf;
+    color: white;
+    cursor: pointer;
+}
+
+/* BOTTOM PANEL */
+.bottom {
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+#tables {
+    padding: 10px;
+    background: #f3f3f3;
+}
+
+#table-data {
+    flex: 1;
+    padding: 10px;
+    overflow: auto;
+    font-family: monospace;
+}
