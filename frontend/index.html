@@ -1,37 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cambridge SQL IDE</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="top">
-    
-    <!-- EDITOR -->
+    <!-- EDITOR PANEL -->
     <div class="panel editor">
-        <div class="header">SQL Editor</div>
-        <textarea id="editor"></textarea>
-        <button onclick="runSQL()">Run</button>
+        <div class="header">
+            <span>SQL Editor</span>
+        </div>
+        <textarea id="editor" placeholder="Write your SQL statements here... (e.g. SELECT * FROM users;)"></textarea>
+        <div class="actions">
+            <button onclick="runSQL()">Run Query</button>
+        </div>
     </div>
 
-    <!-- OUTPUT -->
+    <!-- OUTPUT PANEL -->
     <div class="panel output">
-        <div class="header">Output / Errors</div>
-        <pre id="output"></pre>
+        <div class="header">
+            <span>Output &amp; Errors</span>
+        </div>
+        <div id="output" class="output-content">
+            <div class="alert alert-warning">
+                <div class="alert-title">No execution results yet</div>
+                Write a query and click "Run Query" to see output here.
+            </div>
+        </div>
     </div>
-
 </div>
 
-<!-- BOTTOM DATABASE VIEWER -->
+<!-- DATABASE VIEWER -->
 <div class="bottom">
-    <div class="header">Database Viewer</div>
-    <div id="tables"></div>
-    <div id="table-data"></div>
+    <div class="db-viewer-header">
+        <div class="db-viewer-title">Database Viewer</div>
+        <div id="tabs-bar" class="tabs-bar"></div>
+    </div>
+    <div id="table-view-content" class="table-view-content">
+        <!-- Selected table details or onboarding message will load here -->
+    </div>
 </div>
 
 <script src="app.js"></script>
-
 </body>
 </html>
