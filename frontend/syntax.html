@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIE 9618 Syntax Reference</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="syntax-body">
+
+<nav class="navbar">
+    <div class="navbar-title">Cambridge SQL IDE</div>
+    <div class="navbar-links">
+        <a href="/" class="nav-link">Editor</a>
+        <a href="/syntax" class="nav-link active">Syntax Reference</a>
+    </div>
+</nav>
+
+<div class="syntax-page">
+    <div class="syntax-page-header">
+        <h1>CIE 9618 — DDL &amp; DML Syntax Reference</h1>
+        <p>Every command in the 9618 section 8.3 subset: what it does, and the exact syntax the linter and mark schemes expect.</p>
+        <div class="syntax-filters">
+            <button class="filter-btn active" data-filter="ALL">All</button>
+            <button class="filter-btn" data-filter="DDL">DDL</button>
+            <button class="filter-btn" data-filter="DML">DML</button>
+        </div>
+    </div>
+
+    <div id="syntax-loading" class="syntax-loading">Loading syntax reference…</div>
+    <div id="syntax-error" class="alert alert-danger" style="display:none;"></div>
+    <div id="syntax-grid" class="syntax-grid"></div>
+</div>
+
+<script src="syntax.js"></script>
+</body>
+</html>

@@ -25,6 +25,60 @@ body {
     overflow: hidden;
 }
 
+/* NAVBAR */
+.navbar {
+    flex: 0 0 auto;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 50px;
+}
+
+.navbar-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--text-main);
+}
+
+.navbar-links {
+    display: flex;
+    gap: 4px;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+    color: var(--text-main);
+    background: rgba(59, 130, 246, 0.15);
+}
+
+/* Wraps the editor's top+bottom panes so their height percentages resolve
+   against the space remaining below the navbar, not the full viewport. */
+.app-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 /* TOP SPLIT */
 .top {
     display: flex;
@@ -314,4 +368,165 @@ tr:hover td {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #475569;
+}
+
+/* ===========================================================
+   SYNTAX REFERENCE PAGE
+   =========================================================== */
+
+.syntax-body {
+    height: auto;
+    overflow: auto;
+}
+
+.syntax-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+}
+
+.syntax-page-header h1 {
+    font-size: 1.6rem;
+    margin: 0 0 8px;
+    color: var(--text-main);
+}
+
+.syntax-page-header p {
+    color: var(--text-muted);
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.syntax-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+}
+
+.filter-btn {
+    background: var(--bg-panel);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    box-shadow: none;
+}
+
+.filter-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+    transform: none;
+    box-shadow: none;
+}
+
+.filter-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.syntax-loading {
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 20px 0;
+}
+
+.syntax-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 18px;
+}
+
+.syntax-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.syntax-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.syntax-card-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--text-main);
+    font-family: 'Fira Code', monospace;
+}
+
+.syntax-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.badge-ddl {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+.badge-dml {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.syntax-summary {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin: 0 0 14px;
+}
+
+.syntax-block-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.syntax-block {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 0 0 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text-main);
+}
+
+.syntax-block-syntax {
+    border-left: 3px solid var(--accent);
+}
+
+.syntax-block-example {
+    border-left: 3px solid var(--success);
+}
+
+.syntax-note {
+    font-size: 0.8rem;
+    color: #fcd34d;
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: 6px;
+    padding: 8px 10px;
+    line-height: 1.5;
+    margin-top: auto;
 }

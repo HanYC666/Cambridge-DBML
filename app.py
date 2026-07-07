@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from executor import Executor
+from linter import SYNTAX_REFERENCE
 import os
 
 app = Flask(__name__, static_folder="frontend")
@@ -10,12 +11,17 @@ executor = Executor()
 
 
 # -----------------------------
-# FRONTEND ROUTE
+# FRONTEND ROUTES
 # -----------------------------
 
 @app.route("/")
 def home():
     return send_from_directory("frontend", "index.html")
+
+
+@app.route("/syntax")
+def syntax_page():
+    return send_from_directory("frontend", "syntax.html")
 
 
 @app.route("/<path:path>")
@@ -43,6 +49,11 @@ def tables():
 @app.route("/api/table/<name>", methods=["GET"])
 def table(name):
     return jsonify(executor.table(name))
+
+
+@app.route("/api/syntax", methods=["GET"])
+def syntax_reference():
+    return jsonify(SYNTAX_REFERENCE)
 
 
 # -----------------------------
