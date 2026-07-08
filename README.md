@@ -1,118 +1,217 @@
 # Cambridge-DBML Practice Platform
 
-An interactive SQL practice platform and syntax linter tailored specifically for the **Cambridge International AS & A Level Computer Science (9618)** syllabus, Section 8.3 (Database DDL and DML).
+Cambridge-DBML is an interactive SQL practice platform built for **Cambridge International AS & A Level Computer Science (9618)**, Section 8.3. It combines a Cambridge-focused SQL linter with a local SQLite-backed practice environment so students can write exam-style DDL and DML, receive immediate feedback, and inspect the resulting database state.
 
----
+## About
 
-## 📖 About the Project
+Standard SQL engines such as SQLite, MySQL, and PostgreSQL are much more permissive than Cambridge exam expectations. They commonly accept:
 
-Standard SQL engines (such as SQLite, MySQL, or PostgreSQL) are highly permissive and allow queries that deviate from Cambridge's strict exam standards. For example, standard databases accept non-CIE datatypes (like `INT` or `TEXT`), permit missing semicolons, or allow inline primary keys. 
+- non-Cambridge datatypes such as `INT` or `TEXT`
+- missing semicolons
+- out-of-syllabus features such as `LIMIT` or `LEFT JOIN`
+- structures that may run in SQL engines but would be marked wrong in a Cambridge answer
 
-The **Cambridge-DBML Practice Platform** bridges this gap. It acts as an interactive SQL learning environment that runs your queries through a custom Cambridge-compliant SQL linter *before* executing them on a local database. It provides instant feedback, identifying syntax errors, non-compliant data types, and out-of-syllabus features that would lose marks in an exam setting.
+Cambridge-DBML narrows that gap by linting SQL against Cambridge-oriented rules before execution and surfacing warnings and errors in a dedicated learning interface.
 
----
+## Current Capabilities
 
-## ✨ Key Features
+### Cambridge-focused linting
 
-- **Interactive SQL Editor**: A web-based console to write, lint, and run SQL queries.
-- **Syllabus-Compliant SQL Linter**:
-  - **Strict Datatype Enforcement**: Only allows the seven Cambridge-recognised datatypes: `INTEGER`, `REAL`, `CHARACTER(n)`, `VARCHAR(n)`, `BOOLEAN`, `DATE`, and `TIME`. Common synonyms like `INT`, `FLOAT`, `TEXT`, `STRING`, `BOOL`, or `DATETIME` will trigger linter errors.
-  - **Constraint Location Check**: Ensures that `PRIMARY KEY` and `FOREIGN KEY` (with `REFERENCES`) are defined as separate clauses at the end of the `CREATE TABLE` statement list, rather than inline.
-  - **Out-of-Syllabus Warnings**: Flags features that are technically valid in SQL but sit outside the 9618 syllabus subset (e.g., `LEFT JOIN`, `UNION`, `LIMIT`, `DROP`, `DISTINCT`).
-  - **Table-Count Check**: Warns if a DML query references more than two tables (per CIE limits).
-  - **Heuristic Warnings**: Alerts users to potential syntax mistakes, such as missing quotes around string/date literals (e.g., `WHERE Name = John`).
-  - **Semicolon Check**: Enforces terminating semicolons on every query statement.
-- **Live Database & Schema Viewer**: Automatically scans the SQLite database to display created tables as tabs, showing row counts and schema contents in real-time.
-- **Interactive Syntax Reference**: A dedicated `/syntax` page generated directly from the backend's linter definitions, providing templates, example queries, and syllabus-specific notes for each command.
+The linter checks for Cambridge-specific issues including:
 
----
+- Cambridge-recognized datatypes only: `INTEGER`, `REAL`, `CHARACTER(n)`, `VARCHAR(n)`, `BOOLEAN`, `DATE`, `TIME`
+- forbidden common aliases such as `INT`, `FLOAT`, `TEXT`, `STRING`, `BOOL`, and `DATETIME`
+- missing statement semicolons
+- malformed `PRIMARY KEY` and `FOREIGN KEY ... REFERENCES ...` syntax
+- missing lengths for `VARCHAR` and `CHARACTER`
+- likely missing quotes around text and date literals
+- out-of-syllabus constructs such as `LIMIT`, `UNION`, `DISTINCT`, and non-Cambridge join variants
+- warnings when a `SELECT` query appears to use more than two tables
 
-## 🛠️ Project Structure
+### Execution behavior
 
-The project is structured as follows:
+The execution flow is now intentionally strict by default:
 
-- **`app.py`**: The backend Flask server. It serves frontend assets and exposes REST API endpoints for query execution, schema inspection, and the syntax reference.
-- **`database.py`**: Handles connection management with SQLite (`workspace/current.db`). It parses and executes SQL scripts containing multiple semicolon-separated statements and runs parameterized schema queries with SQL injection protections.
-- **`executor.py`**: Coordinates the query execution lifecycle by passing queries through the linter before sending them to the database.
-- **`linter.py`**: Houses the syntax verification patterns, whitelist keywords, and forbidden type rules. It also serves as the single source of truth for the syntax reference data.
-- **`frontend/`**: Vanilla JavaScript/HTML/CSS single-page client application:
-  - `index.html` & `app.js` & `style.css`: The SQL Editor & Database Viewer UI.
-  - `syntax.html` & `syntax.js`: The CIE 9618 SQL Syntax Reference.
-- **`workspace/`**: The directory containing the local SQLite database (`current.db`).
+- SQL with Cambridge lint errors is **blocked from execution** unless explicitly retried with `run_anyway`
+- Cambridge-valid but SQLite-non-executable statements such as `CREATE DATABASE School;` are treated as **validated-only** successes
+- multi-statement SQL scripts execute **transactionally**
+- later failures in a script roll back earlier writes from the same script
+- semicolons inside single-quoted strings do not split statements incorrectly
 
----
+### Frontend
 
-## 🚀 Getting Started
+The frontend provides:
 
-Follow these step-by-step instructions to get the platform up and running on your local machine.
+- a browser-based SQL workspace
+- clear lint diagnostics and runtime feedback
+- a live database viewer for current tables and rows
+- a dedicated syntax reference page generated from backend-owned reference data
+- keyboard shortcut support for running SQL with `Ctrl` + `Enter`
 
-### 1. Clone the Repository
+## Project Structure
 
-Clone the repository and navigate into the project directory:
+- `app.py`: Flask server and HTTP API routes
+- `executor.py`: lint-aware execution coordinator
+- `database.py`: SQLite execution, script splitting, transactional behavior, and table inspection
+- `linter.py`: Cambridge SQL linting rules and syntax reference source data
+- `frontend/`: vanilla HTML, CSS, and JavaScript UI
+- `tests/`: automated regression tests
+- `workspace/`: local SQLite database location, including `workspace/current.db`
+- `venv/`: project-local Python virtual environment
+
+## Getting Started
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/HanYC666/Cambridge-DBML.git
 cd Cambridge-DBML
 ```
 
-### 2. Create a Virtual Environment (Recommended)
+### 2. Create the project-local virtual environment
 
-Keep your dependencies isolated by setting up a virtual environment.
+Use a local virtual environment at `venv/`.
 
-* **Create the environment:**
-  ```bash
-  python -m venv venv
-  ```
+```bash
+python -m venv venv
+```
 
-* **Activate it:**
-  * **Linux / macOS:**
-    ```bash
-    source venv/bin/activate
-    ```
-  * **Windows:**
-    ```bash
-    venv\Scripts\activate
-    ```
+Activate it:
 
-### 3. Install Dependencies
+Linux / macOS:
 
-Install all the required Python packages:
+```bash
+source venv/bin/activate
+```
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the Backend Server
-
-Start the Flask application:
+### 4. Run the application
 
 ```bash
-python app.py
+venv/bin/python app.py
 ```
 
-### 5. Access the Application
+If your shell already has the virtual environment activated, `python app.py` is also fine.
 
-Open your browser and navigate to:
-[http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+### 5. Open the app
 
----
+Visit:
 
-## 🔌 API Endpoints
+- `http://127.0.0.1:5000/` for the SQL workspace
+- `http://127.0.0.1:5000/syntax` for the syntax reference
 
-The Flask backend exposes the following REST API endpoints:
+## API Endpoints
 
-- **`POST /api/execute`**: Executes a query or script.
-  - **Request Body**: `{"sql": "string"}`
-  - **Response**: `{ "success": boolean, "lint": { "errors": [...], "warnings": [...] }, "result": { ... } | null, "error": "string" | null }`
-- **`GET /api/tables`**: Returns a list of all tables currently defined in the database.
-- **`GET /api/table/<name>`**: Returns columns and rows for a specific table.
-- **`GET /api/syntax`**: Returns the array of syntax reference documentation items used to build the syntax guide.
+### `POST /api/execute`
 
----
+Execute SQL through the Cambridge-aware workflow.
 
-##  License & Warranty
+Request body:
 
-> ⚠️ **Disclaimer:** This software comes with **ABSOLUTE NO WARRANTY!**
+```json
+{
+  "sql": "SELECT * FROM Student;",
+  "run_anyway": false
+}
+```
 
-* **Open-Source:** You are free to redistribute, modify, and use this software. However, it **must** remain fully open-source at all times and under all conditions.
-* **Attribution:** You must give explicit credit to the original creator (**HanYC666**) if you post, publish, or distribute this program or any of its variants.
+Behavior:
+
+- returns HTTP `400` if the request body is not a JSON object
+- returns HTTP `400` if `sql` is missing or not a string
+- returns `blocked_by_lint: true` when lint errors prevent execution
+- returns a `validated_only` result for supported Cambridge-only statements such as `CREATE DATABASE`
+
+Example response shape:
+
+```json
+{
+  "success": true,
+  "blocked_by_lint": false,
+  "lint": {
+    "errors": [],
+    "warnings": []
+  },
+  "result": {
+    "type": "select",
+    "columns": ["StudentID", "Name"],
+    "rows": [[1, "Amina"]],
+    "statements_run": 1
+  }
+}
+```
+
+Blocked example:
+
+```json
+{
+  "success": false,
+  "blocked_by_lint": true,
+  "lint": {
+    "errors": [
+      {
+        "line": 1,
+        "message": "Use the Cambridge 9618 datatype instead: VARCHAR(n)"
+      }
+    ],
+    "warnings": []
+  },
+  "result": null,
+  "error": "Execution blocked because the SQL has Cambridge 9618 lint errors."
+}
+```
+
+### `GET /api/tables`
+
+Returns the list of current table names.
+
+### `GET /api/table/<name>`
+
+Returns the selected table's columns and rows.
+
+Invalid or unknown table names return HTTP `400` with a JSON error body.
+
+### `GET /api/syntax`
+
+Returns the syntax reference data used by the `/syntax` page.
+
+## Testing
+
+Run the regression suite with the project-local virtual environment:
+
+```bash
+venv/bin/python -m unittest discover -s tests
+```
+
+The current test suite covers:
+
+- linter error and warning behavior
+- lint-blocked execution
+- `run_anyway` execution path
+- validated-only `CREATE DATABASE` handling
+- transactional rollback behavior
+- malformed API request handling
+
+## Notes
+
+- The backend uses SQLite as a practice engine, but the learning goal is Cambridge-style SQL correctness rather than generic SQL portability.
+- Some Cambridge-valid syntax may be accepted as validated-only rather than executed directly if SQLite cannot represent it meaningfully in this environment.
+- The interface is intentionally low-motion and productivity-focused.
+
+## License & Warranty
+
+> Disclaimer: This software comes with **ABSOLUTE NO WARRANTY**.
+
+- Open source: you may redistribute, modify, and use this software, but it must remain fully open-source.
+- Attribution: credit the original creator, **HanYC666**, when posting, publishing, or distributing this program or derived variants.

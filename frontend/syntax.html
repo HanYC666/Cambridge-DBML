@@ -3,34 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIE 9618 Syntax Reference</title>
+    <title>Cambridge SQL Syntax Reference</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="syntax-body">
-
-<nav class="navbar">
-    <div class="navbar-title">Cambridge SQL IDE</div>
-    <div class="navbar-links">
-        <a href="/" class="nav-link">Editor</a>
+<body class="syntax-body" data-page="syntax">
+<nav class="site-nav">
+    <div class="brand-block">
+        <div class="brand-kicker">Cambridge 9618 Practice</div>
+        <div class="brand-title">Cambridge SQL Workspace</div>
+    </div>
+    <div class="site-links">
+        <a href="/" class="nav-link">Workspace</a>
         <a href="/syntax" class="nav-link active">Syntax Reference</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
+            <span class="theme-toggle-label">Dark Mode</span>
+        </button>
     </div>
 </nav>
 
-<div class="syntax-page">
-    <div class="syntax-page-header">
-        <h1>CIE 9618 — DDL &amp; DML Syntax Reference</h1>
-        <p>Every command in the 9618 section 8.3 subset: what it does, and the exact syntax the linter and mark schemes expect.</p>
+<main class="syntax-shell">
+    <section class="syntax-hero panel-card">
+        <p class="eyebrow">Reference</p>
+        <h1>CIE 9618 DDL and DML Syntax Guide</h1>
+        <p>
+            This page is generated from the backend linter definitions, so the documented syntax stays aligned with what the app checks.
+        </p>
         <div class="syntax-filters">
-            <button class="filter-btn active" data-filter="ALL">All</button>
-            <button class="filter-btn" data-filter="DDL">DDL</button>
-            <button class="filter-btn" data-filter="DML">DML</button>
+            <button class="filter-btn active" data-filter="ALL" type="button">All</button>
+            <button class="filter-btn" data-filter="DDL" type="button">DDL</button>
+            <button class="filter-btn" data-filter="DML" type="button">DML</button>
         </div>
-    </div>
+    </section>
 
-    <div id="syntax-loading" class="syntax-loading">Loading syntax reference…</div>
+    <div id="syntax-loading" class="status-line">Loading syntax reference...</div>
     <div id="syntax-error" class="alert alert-danger" style="display:none;"></div>
-    <div id="syntax-grid" class="syntax-grid"></div>
-</div>
+    <section id="syntax-grid" class="syntax-grid"></section>
+</main>
 
 <script src="syntax.js"></script>
 </body>

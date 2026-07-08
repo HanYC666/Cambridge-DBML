@@ -3,57 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cambridge SQL IDE</title>
+    <title>Cambridge SQL Workspace</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-<nav class="navbar">
-    <div class="navbar-title">Cambridge SQL IDE</div>
-    <div class="navbar-links">
-        <a href="/" class="nav-link active">Editor</a>
+<body data-page="workspace">
+<nav class="site-nav">
+    <div class="brand-block">
+        <div class="brand-kicker">Cambridge 9618 Practice</div>
+        <div class="brand-title">Cambridge SQL Workspace</div>
+    </div>
+    <div class="site-links">
+        <a href="/" class="nav-link active">Workspace</a>
         <a href="/syntax" class="nav-link">Syntax Reference</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
+            <span class="theme-toggle-label">Dark Mode</span>
+        </button>
     </div>
 </nav>
 
-<div class="app-body">
-    <div class="top">
-        <!-- EDITOR PANEL -->
-        <div class="panel editor">
-            <div class="header">
-                <span>SQL Editor</span>
+<main class="workspace-shell">
+    <section class="hero-panel">
+        <div class="hero-copy">
+            <p class="eyebrow">Exam-style SQL, checked before execution</p>
+            <h1>Practice Cambridge DDL and DML with immediate feedback.</h1>
+            <p class="hero-text">
+                This environment is tuned for Cambridge International 9618 expectations, not generic SQL convenience.
+                Use it to write stricter scripts, inspect lint feedback, and verify table structure quickly.
+            </p>
+        </div>
+        <div class="hero-metrics">
+            <div class="metric-card">
+                <span class="metric-label">Mode</span>
+                <strong>Cambridge-focused linting</strong>
+                <p>Flags non-syllabus datatypes, structure issues, and likely exam mistakes.</p>
             </div>
-            <textarea id="editor" placeholder="Write your SQL statements here... (e.g. SELECT * FROM users;)"></textarea>
-            <div class="actions">
-                <button onclick="runSQL()">Run Query</button>
+            <div class="metric-card">
+                <span class="metric-label">Engine</span>
+                <strong>SQLite-backed practice database</strong>
+                <p>Useful for experimentation, but not a substitute for Cambridge syntax rules.</p>
+            </div>
+            <div class="metric-card">
+                <span class="metric-label">Workflow</span>
+                <strong>Run with <kbd>Ctrl</kbd> + <kbd>Enter</kbd></strong>
+                <p>Use the editor, review output, then inspect the database viewer below.</p>
             </div>
         </div>
+    </section>
 
-        <!-- OUTPUT PANEL -->
-        <div class="panel output">
-            <div class="header">
-                <span>Output &amp; Errors</span>
+    <section class="workspace-grid">
+        <article class="panel-card panel-card-editor">
+            <div class="panel-head">
+                <div>
+                    <p class="panel-label">Editor</p>
+                    <h2>SQL Script</h2>
+                </div>
+                <div class="panel-note">Semicolons are expected for every statement.</div>
             </div>
-            <div id="output" class="output-content">
-                <div class="alert alert-warning">
-                    <div class="alert-title">No execution results yet</div>
-                    Write a query and click "Run Query" to see output here.
+
+            <div class="guidance-strip">
+                <span class="guide-chip">Use `INTEGER`, `REAL`, `VARCHAR(n)`</span>
+                <span class="guide-chip">Keep joins within Cambridge scope</span>
+                <span class="guide-chip">Put text and dates in single quotes</span>
+            </div>
+
+            <label class="editor-label" for="editor">Query input</label>
+            <textarea id="editor" spellcheck="false" placeholder="CREATE TABLE Student (&#10;    StudentID INTEGER,&#10;    Name VARCHAR(30) NOT NULL,&#10;    PRIMARY KEY (StudentID)&#10;);"></textarea>
+
+            <div class="action-row">
+                <button id="run-button" class="btn btn-primary" type="button">Run Query</button>
+                <button id="clear-output" class="btn btn-secondary" type="button">Clear Output</button>
+                <div class="action-hint">Shortcut: <kbd>Ctrl</kbd> + <kbd>Enter</kbd></div>
+            </div>
+        </article>
+
+        <article class="panel-card panel-card-output">
+            <div class="panel-head">
+                <div>
+                    <p class="panel-label">Results</p>
+                    <h2>Output and Diagnostics</h2>
+                </div>
+                <div class="panel-note">Lint messages appear before runtime results.</div>
+            </div>
+            <div id="output" class="output-stack">
+                <div class="empty-state">
+                    <h3>No execution results yet</h3>
+                    <p>Run a query to see Cambridge lint feedback, runtime errors, or returned rows.</p>
                 </div>
             </div>
-        </div>
-    </div>
+        </article>
+    </section>
 
-    <!-- DATABASE VIEWER -->
-    <div class="bottom">
-        <div class="db-viewer-header">
-            <div class="db-viewer-title">Database Viewer</div>
-            <div id="tabs-bar" class="tabs-bar"></div>
+    <section class="data-panel panel-card">
+        <div class="panel-head panel-head-spread">
+            <div>
+                <p class="panel-label">Database Viewer</p>
+                <h2>Current Schema and Table Data</h2>
+            </div>
+            <p class="panel-note">Select a table tab to inspect its columns and current rows.</p>
         </div>
-        <div id="table-view-content" class="table-view-content">
-            <!-- Selected table details or onboarding message will load here -->
+
+        <div class="table-browser">
+            <div id="tabs-bar" class="tabs-bar" aria-label="Database tables"></div>
+            <div id="table-view-content" class="table-view-content"></div>
         </div>
-    </div>
-</div>
+    </section>
+</main>
 
 <script src="app.js"></script>
 </body>
