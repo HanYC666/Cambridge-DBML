@@ -99,17 +99,15 @@ pip install -r requirements.txt
 ### 4. Run the application
 
 ```bash
-venv/bin/python app.py
+python3 app.py
 ```
-
-If your shell already has the virtual environment activated, `python app.py` is also fine.
 
 ### 5. Open the app
 
 Visit:
 
-- `http://127.0.0.1:5000/` for the SQL workspace
-- `http://127.0.0.1:5000/syntax` for the syntax reference
+- `http://127.0.0.1:8001/` for the SQL workspace
+- `http://127.0.0.1:8001/syntax` for the syntax reference
 
 ## API Endpoints
 
