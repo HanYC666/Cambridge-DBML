@@ -2,7 +2,7 @@
 
 ## 2026-09-08 - v0.5.0
 
-### summary
+### Summary
 
 Converted the practice application into a deployable static browser application and added a minimal, read-only Go server for secure Raspberry Pi Zero W hosting. The browser now performs linting, SQLite execution, table viewing, and database persistence locally; the server only distributes static assets.
 
@@ -14,7 +14,7 @@ Converted the practice application into a deployable static browser application 
 - Removed the Google Fonts dependency and updated the static CSP so all production application assets are locally served.
 - Reworked `DatabaseManager` connection access to use an `RLock` and per-operation cursors, preventing shared-cursor interference between concurrent Flask requests.
 
-### added
+### Added
 
 - Added a local `sql.js` WebAssembly runtime and browser SQLite engine with quote-aware script splitting, transactions, rollback, table listing, safe table reads, byte export, and Cambridge `CREATE DATABASE` validated-only handling.
 - Added a browser implementation of the Cambridge 9618 SQL linter and a static syntax-reference module.
@@ -28,7 +28,7 @@ Converted the practice application into a deployable static browser application 
 - Added `PI_ZERO_DEPLOY.md` with Pi Zero W ARMv6 cross-compilation, unprivileged runtime, reverse-proxy, Cloudflare Cache Rule, and verification instructions.
 - Added Go server tests covering allowed methods, cache/security headers, traversal rejection, and unknown paths.
 
-### fixed
+### Fixed
 
 - Fixed static WASM tests to load the checked-in runtime asset rather than assuming a package-local `node_modules` layout.
 - Fixed browser autosave so a script that writes data and finishes with `SELECT` still persists the changed database.
@@ -36,7 +36,7 @@ Converted the practice application into a deployable static browser application 
 
 ## 2026-08-15 - v0.4.1
 
-### summary
+### Summary
 
 Refined repository hygiene after the static migration planning work.
 
@@ -46,17 +46,17 @@ Refined repository hygiene after the static migration planning work.
 
 ## 2026-07-22 - v0.4.0
 
-### summary
+### Summary
 
 Documented the static GitHub Pages migration strategy before implementation began.
 
-### added
+### Added
 
 - Added `github-static/implementation_plan.md` describing the browser SQLite architecture, static deployment model, client-owned database persistence, API replacement map, test plan, security considerations, and GitHub Pages deployment options.
 
 ## 2026-07-18 - v0.3.1
 
-### summary
+### Summary
 
 Adjusted the Flask development server documentation and runtime configuration for local network access.
 
@@ -67,7 +67,7 @@ Adjusted the Flask development server documentation and runtime configuration fo
 
 ## 2026-07-08 - v0.3.0
 
-### summary
+### Summary
 
 Completed the first full application hardening pass: strict Cambridge lint gating, transactional execution, API validation, richer frontend diagnostics, syntax reference support, and automated Python regression coverage.
 
@@ -80,7 +80,7 @@ Completed the first full application hardening pass: strict Cambridge lint gatin
 - Redesigned the workspace and syntax-reference UI with responsive panels, theme support, keyboard execution shortcuts, and safer escaped result rendering.
 - Updated README, ignore rules, and project documentation to match the hardened behavior and local development workflow.
 
-### added
+### Added
 
 - Added `blocked_by_lint` execution responses and frontend retry support for intentionally running lint-invalid SQL.
 - Added validated-only handling for Cambridge-valid `CREATE DATABASE` statements that SQLite cannot execute in the practice database.
@@ -89,7 +89,7 @@ Completed the first full application hardening pass: strict Cambridge lint gatin
 - Added syntax-reference pages and backend-owned syntax data for Cambridge DDL and DML guidance.
 - Added Python regression suites for the Flask API, database manager, executor, and linter.
 
-### fixed
+### Fixed
 
 - Fixed table-name handling by validating identifiers before they are interpolated into table inspection SQL.
 - Fixed API error handling for invalid JSON, missing SQL fields, and invalid table names.
@@ -97,7 +97,7 @@ Completed the first full application hardening pass: strict Cambridge lint gatin
 
 ## 2026-07-07 - v0.2.0
 
-### summary
+### Summary
 
 Expanded the project from a basic SQL editor into a Cambridge 9618-focused practice environment with syllabus-aware diagnostics and a dedicated syntax reference.
 
@@ -107,7 +107,7 @@ Expanded the project from a basic SQL editor into a Cambridge 9618-focused pract
 - Updated the Flask application, database layer, README, workspace markup, and shared styles to support the broader learning workflow.
 - Refined the workspace layout and presentation of editor guidance, outputs, and database inspection.
 
-### added
+### Added
 
 - Added the syntax-reference page and client script.
 - Added Cambridge 9618 syntax-reference data for DDL, DML, keys, datatypes, joins, aggregate functions, and data-maintenance statements.
@@ -115,17 +115,17 @@ Expanded the project from a basic SQL editor into a Cambridge 9618-focused pract
 
 ## 2026-07-01 - v0.1.0
 
-### summary
+### Summary
 
 Created Cambridge-DBML as a Flask and SQLite SQL-practice application for Cambridge International AS & A Level Computer Science 9618.
 
-### added
+### Added
 
 - Added the Flask application, execution coordinator, SQLite database manager, Cambridge SQL linter, frontend workspace, requirements file, and project ignore rules.
 - Added a browser SQL editor, query execution endpoint, table viewer, and baseline Cambridge-oriented lint feedback.
 - Added the initial README with setup and usage guidance.
 - Added responsive workspace styling and a subsequent UI refresh that improved editor, output, and database-viewer hierarchy.
 
-### removed
+### Removed
 
 - Removed the local workspace database from version control and added ignore rules so developer data is not committed.
