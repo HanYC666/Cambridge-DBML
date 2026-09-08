@@ -213,3 +213,7 @@ The current test suite covers:
 
 - Open source: you may redistribute, modify, and use this software, but it must remain fully open-source.
 - Attribution: credit the original creator, **HanYC666**, when posting, publishing, or distributing this program or derived variants.
+
+## AI Usage Disclaimer
+
+GPT 5.6 Luna was used to format part of the code and enforce server security.

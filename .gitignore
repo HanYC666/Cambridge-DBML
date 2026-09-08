@@ -2,3 +2,4 @@ venv/
 __pycache__/
 workspace/current.db
 .DS_Store
+task.md
