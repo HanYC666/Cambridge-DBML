@@ -1,131 +1,131 @@
 # Changelog
 
-## First Commit Reference
+## 2026-09-08 - v0.5.0
 
-### Date
+### summary
 
-2026-07-08
+Converted the practice application into a deployable static browser application and added a minimal, read-only Go server for secure Raspberry Pi Zero W hosting. The browser now performs linting, SQLite execution, table viewing, and database persistence locally; the server only distributes static assets.
 
-### Project Snapshot
+### changed
 
-This baseline captures the current working state of the Cambridge-DBML project before deeper backend improvements and test coverage are added.
+- Moved the deployable application into `github-static/`, separating it from the retained Flask development application.
+- Replaced browser calls to Flask endpoints with local JavaScript modules for linting, SQL execution, table inspection, and syntax-reference rendering.
+- Changed the static build to use relative asset paths so the generated site can be served from a custom domain root or a GitHub Pages project path.
+- Removed the Google Fonts dependency and updated the static CSP so all production application assets are locally served.
+- Reworked `DatabaseManager` connection access to use an `RLock` and per-operation cursors, preventing shared-cursor interference between concurrent Flask requests.
 
-### Purpose of the Project
+### added
 
-Cambridge-DBML is a Cambridge International AS & A Level Computer Science 9618 SQL practice platform. It combines a Cambridge-focused SQL linter with a local SQLite-backed execution environment so users can practise DDL and DML syntax while receiving exam-oriented feedback.
+- Added a local `sql.js` WebAssembly runtime and browser SQLite engine with quote-aware script splitting, transactions, rollback, table listing, safe table reads, byte export, and Cambridge `CREATE DATABASE` validated-only handling.
+- Added a browser implementation of the Cambridge 9618 SQL linter and a static syntax-reference module.
+- Added local-file persistence controls: new database, open, save as, export, and import. Chromium browsers can autosave to a user-selected file; other browsers retain explicit import/export support.
+- Added persistence state reporting for in-memory, unsaved, saving, saved, imported, and failed-save states.
+- Added Vitest coverage for browser linting, SQL execution, transactions, table access, executor behavior, persistence, and write-plus-SELECT autosave behavior.
+- Added Playwright coverage for executing SQL without API requests, updating the table viewer, exporting a database, and rendering the syntax reference without an API request.
+- Added a dependency-free Go server that embeds the built static site, serves only `GET` and `HEAD`, rejects all write methods with `405 Method Not Allowed`, restricts paths to known static files, and applies response timeouts and header-size limits.
+- Added CSP, MIME-sniffing, frame, referrer, permissions, COOP, and CORP security headers to the Go server.
+- Added Cloudflare-oriented cache headers: cacheable HTML with shared-cache revalidation and one-year immutable caching for versioned assets.
+- Added `PI_ZERO_DEPLOY.md` with Pi Zero W ARMv6 cross-compilation, unprivileged runtime, reverse-proxy, Cloudflare Cache Rule, and verification instructions.
+- Added Go server tests covering allowed methods, cache/security headers, traversal rejection, and unknown paths.
 
-### Current Architecture
+### fixed
 
-- Backend: `Flask` application in `app.py`
-- Execution layer: `executor.py`
-- Database layer: `database.py`
-- Cambridge SQL linter and syntax reference source: `linter.py`
-- Frontend: vanilla `HTML`, `CSS`, and `JavaScript` in `frontend/`
-- Local project environment: Python virtual environment at `venv/`
-- Local database workspace: `workspace/current.db`
+- Fixed static WASM tests to load the checked-in runtime asset rather than assuming a package-local `node_modules` layout.
+- Fixed browser autosave so a script that writes data and finishes with `SELECT` still persists the changed database.
+- Fixed writable file-save failure handling so an open writable stream is aborted when writing fails.
 
-### Implemented Features At This Baseline
+## 2026-08-15 - v0.4.1
 
-- Web-based SQL editor for writing and submitting queries
-- Linting of Cambridge SQL syntax before execution results are shown
-- Detection of forbidden non-Cambridge datatypes such as `TEXT`, `INT`, and `FLOAT`
-- Warnings for out-of-syllabus SQL features such as `LIMIT`, `UNION`, and non-Cambridge joins
-- Multi-statement SQL script execution through the backend
-- Database viewer for listing tables and inspecting table contents
-- Syntax reference page generated from backend-owned reference data
-- Table-name validation on table inspection endpoints to reduce SQL injection risk
+### summary
 
-### Known Gaps At This Baseline
+Refined repository hygiene after the static migration planning work.
 
-- Lint errors do not yet block execution by default
-- SQL script splitting in `database.py` is still naive and not transaction-safe
-- Cambridge-valid but SQLite-non-executable commands such as `CREATE DATABASE` are not yet handled explicitly
-- API validation and error responses need hardening
-- Automated tests are not yet present
+### changed
 
-### UI State At This Baseline
+- Updated root ignore rules to exclude macOS `.DS_Store` metadata from version control.
 
-The UI was refreshed in this baseline pass to establish a better starting point for future work.
+## 2026-07-22 - v0.4.0
 
-Implemented UI improvements:
+### summary
 
-- Replaced the flat dark dashboard styling with a more intentional workspace layout
-- Added a stronger page hierarchy for the editor, output, and database viewer
-- Improved the syntax reference page so it visually matches the main workspace
-- Added compact Cambridge guidance near the editor for faster exam-style usage
-- Added keyboard shortcut support for running queries with `Ctrl` + `Enter`
-- Kept motion restrained and avoided distracting floating elements or decorative animations
-- Preserved responsive behavior for smaller screens
+Documented the static GitHub Pages migration strategy before implementation began.
 
-### Planning Changes Made In This Baseline Pass
+### added
 
-`implementation_plan.md` was rewritten to better reflect the actual repository and the next practical workstreams:
+- Added `github-static/implementation_plan.md` describing the browser SQLite architecture, static deployment model, client-owned database persistence, API replacement map, test plan, security considerations, and GitHub Pages deployment options.
 
-- UI and UX refresh
-- lint-gated execution
-- safer transactional SQL execution
-- Cambridge-only command handling
-- API validation hardening
-- automated regression tests
+## 2026-07-18 - v0.3.1
 
-### Environment Rule For Future Work
+### summary
 
-All Python work for this project should use the project-local virtual environment:
+Adjusted the Flask development server documentation and runtime configuration for local network access.
 
-```bash
-venv/bin/python
-```
+### changed
 
-### Notes For Future Entries
+- Updated the Flask server port configuration.
+- Updated README run instructions to match the locally accessible development server.
 
-Add future changes below this entry using dated markdown sections. Keep entries focused on:
+## 2026-07-08 - v0.3.0
 
-- backend behavior changes
-- frontend/UI changes
-- lint rule changes
-- test coverage additions
-- bug fixes and regressions avoided
+### summary
 
-## 2026-07-08 - Backend Execution and Validation Pass
+Completed the first full application hardening pass: strict Cambridge lint gating, transactional execution, API validation, richer frontend diagnostics, syntax reference support, and automated Python regression coverage.
 
-### Summary
+### changed
 
-Implemented the first major backend improvement pass after the baseline review and UI refresh.
+- Updated the Flask API to return structured JSON errors for malformed execution payloads and invalid table requests.
+- Updated the executor to block Cambridge lint errors by default while retaining an explicit `run_anyway` path.
+- Updated database execution to run multi-statement scripts transactionally and return the final `SELECT` result when present.
+- Updated frontend workspace behavior to render lint blocks, runtime failures, validated-only statements, result tables, and table-viewer state clearly.
+- Redesigned the workspace and syntax-reference UI with responsive panels, theme support, keyboard execution shortcuts, and safer escaped result rendering.
+- Updated README, ignore rules, and project documentation to match the hardened behavior and local development workflow.
 
-### Added
+### added
 
-- Cambridge lint errors now block SQL execution by default
-- Explicit `run_anyway` support in the execution flow
-- `blocked_by_lint` response flag for the frontend
-- Support for Cambridge-valid but SQLite-non-executable `CREATE DATABASE` statements through a `validated_only` response type
-- String-aware SQL statement splitting that preserves semicolons inside single-quoted values
-- Transactional multi-statement execution with rollback on failure
-- Structured API validation for malformed JSON and missing `sql`
-- Automated backend regression tests in `tests/`
+- Added `blocked_by_lint` execution responses and frontend retry support for intentionally running lint-invalid SQL.
+- Added validated-only handling for Cambridge-valid `CREATE DATABASE` statements that SQLite cannot execute in the practice database.
+- Added quote-aware SQL splitting so semicolons in single-quoted values do not split scripts incorrectly.
+- Added rollback behavior for failed later statements in a multi-statement transaction.
+- Added syntax-reference pages and backend-owned syntax data for Cambridge DDL and DML guidance.
+- Added Python regression suites for the Flask API, database manager, executor, and linter.
 
-### Changed
+### fixed
 
-- `executor.py` now accepts `run_anyway` and returns blocked execution responses when lint errors exist
-- `database.py` now executes scripts transactionally and rejects mixed `CREATE DATABASE` plus executable SQLite scripts
-- `app.py` now returns JSON `400` responses for invalid `/api/execute` payloads and invalid table requests
-- `frontend/app.js` is now aligned with the stricter execution flow and can surface `blocked_by_lint` and `validated_only` responses correctly
+- Fixed table-name handling by validating identifiers before they are interpolated into table inspection SQL.
+- Fixed API error handling for invalid JSON, missing SQL fields, and invalid table names.
+- Fixed frontend handling for lint-blocked and Cambridge-only execution outcomes.
 
-### Verified
+## 2026-07-07 - v0.2.0
 
-The following verification was run using the project-local virtual environment:
+### summary
 
-```bash
-venv/bin/python -m unittest discover -s tests
-venv/bin/python -m py_compile app.py database.py executor.py linter.py
-```
+Expanded the project from a basic SQL editor into a Cambridge 9618-focused practice environment with syllabus-aware diagnostics and a dedicated syntax reference.
 
-Result:
+### changed
 
-- 13 tests passed
-- Python modules compiled successfully
+- Expanded the Cambridge linter to cover more datatype, key, quoting, out-of-syllabus, and table-count checks.
+- Updated the Flask application, database layer, README, workspace markup, and shared styles to support the broader learning workflow.
+- Refined the workspace layout and presentation of editor guidance, outputs, and database inspection.
 
-### Remaining Follow-Up Work
+### added
 
-- Consider making the linter's own statement splitting string-aware as well for full consistency with runtime behavior
-- Extend Cambridge-only handling if more syllabus-valid but SQLite-non-executable commands need special treatment
-- Add higher-level browser/manual QA once further frontend behavior changes are made
+- Added the syntax-reference page and client script.
+- Added Cambridge 9618 syntax-reference data for DDL, DML, keys, datatypes, joins, aggregate functions, and data-maintenance statements.
+- Added lint diagnostics for invalid datatype aliases, missing `VARCHAR` or `CHARACTER` lengths, malformed primary and foreign keys, likely unquoted values, unsupported SQL features, and queries that appear to use more than two tables.
+
+## 2026-07-01 - v0.1.0
+
+### summary
+
+Created Cambridge-DBML as a Flask and SQLite SQL-practice application for Cambridge International AS & A Level Computer Science 9618.
+
+### added
+
+- Added the Flask application, execution coordinator, SQLite database manager, Cambridge SQL linter, frontend workspace, requirements file, and project ignore rules.
+- Added a browser SQL editor, query execution endpoint, table viewer, and baseline Cambridge-oriented lint feedback.
+- Added the initial README with setup and usage guidance.
+- Added responsive workspace styling and a subsequent UI refresh that improved editor, output, and database-viewer hierarchy.
+
+### removed
+
+- Removed the local workspace database from version control and added ignore rules so developer data is not committed.
