@@ -1,5 +1,6 @@
 # Python environments, caches, and test output
 .venv/
+.build-venv/
 venv/
 __pycache__/
 *.py[cod]
@@ -31,6 +32,8 @@ github-static/playwright-report/
 build/
 cambridge-dbml-pi
 cambridge-dbml-server
+cambridge-dbml-local-macos-arm64
+cambridge-dbml-local-macos-amd64(intel_mac)
 *.test
 
 # Operating-system and editor files
