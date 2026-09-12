@@ -1,219 +1,182 @@
-# Cambridge-DBML Practice Platform
+# Cambridge DBML
 
-Cambridge-DBML is an interactive SQL practice platform built for **Cambridge International AS & A Level Computer Science (9618)**, Section 8.3. It combines a Cambridge-focused SQL linter with a local SQLite-backed practice environment so students can write exam-style DDL and DML, receive immediate feedback, and inspect the resulting database state.
+Cambridge DBML is a SQL practice workspace for Cambridge International AS & A
+Level Computer Science (9618), section 8.3. It helps students write exam-style
+DDL and DML, explains common Cambridge-specific mistakes, and lets them inspect
+the tables they create.
 
-## About
+The recommended production app is completely static: SQL linting, SQLite
+execution, and database files stay in the visitor's browser. The repository
+also keeps the original Flask app for local Python development and testing.
 
-Standard SQL engines such as SQLite, MySQL, and PostgreSQL are much more permissive than Cambridge exam expectations. They commonly accept:
+## What It Checks
 
-- non-Cambridge datatypes such as `INT` or `TEXT`
-- missing semicolons
-- out-of-syllabus features such as `LIMIT` or `LEFT JOIN`
-- structures that may run in SQL engines but would be marked wrong in a Cambridge answer
+The linter is designed for Cambridge SQL rather than generic database syntax.
+It flags or warns about:
 
-Cambridge-DBML narrows that gap by linting SQL against Cambridge-oriented rules before execution and surfacing warnings and errors in a dedicated learning interface.
+- Non-Cambridge datatypes such as `TEXT`, `INT`, `FLOAT`, and `BOOL`.
+- Missing semicolons and missing `VARCHAR(n)` or `CHARACTER(n)` lengths.
+- Incorrect `PRIMARY KEY` and `FOREIGN KEY ... REFERENCES` forms.
+- Likely missing quotes around text and date values.
+- Out-of-syllabus features such as `LIMIT`, `UNION`, `DISTINCT`, and non-inner joins.
+- `SELECT` statements that appear to use more than two tables.
 
-## Current Capabilities
+Lint errors block execution by default. Students can choose **Run Anyway** to
+experiment with SQLite behaviour, but the warning remains visible.
 
-### Cambridge-focused linting
+## Choose A Run Mode
 
-The linter checks for Cambridge-specific issues including:
+| Goal | Use | Notes |
+| --- | --- | --- |
+| Develop or preview the student website | `github-static/` | Recommended for the current application. Runs entirely in the browser. |
+| Work on the original Python application | Flask | Useful for the existing Python tests and API development. |
+| Host on a Raspberry Pi Zero W | Go static server | Embeds the built website in one read-only ARM binary. |
 
-- Cambridge-recognized datatypes only: `INTEGER`, `REAL`, `CHARACTER(n)`, `VARCHAR(n)`, `BOOLEAN`, `DATE`, `TIME`
-- forbidden common aliases such as `INT`, `FLOAT`, `TEXT`, `STRING`, `BOOL`, and `DATETIME`
-- missing statement semicolons
-- malformed `PRIMARY KEY` and `FOREIGN KEY ... REFERENCES ...` syntax
-- missing lengths for `VARCHAR` and `CHARACTER`
-- likely missing quotes around text and date literals
-- out-of-syllabus constructs such as `LIMIT`, `UNION`, `DISTINCT`, and non-Cambridge join variants
-- warnings when a `SELECT` query appears to use more than two tables
+## Static Website Quick Start
 
-### Execution behavior
-
-The execution flow is now intentionally strict by default:
-
-- SQL with Cambridge lint errors is **blocked from execution** unless explicitly retried with `run_anyway`
-- Cambridge-valid but SQLite-non-executable statements such as `CREATE DATABASE School;` are treated as **validated-only** successes
-- multi-statement SQL scripts execute **transactionally**
-- later failures in a script roll back earlier writes from the same script
-- semicolons inside single-quoted strings do not split statements incorrectly
-
-### Frontend
-
-The frontend provides:
-
-- a browser-based SQL workspace
-- clear lint diagnostics and runtime feedback
-- a live database viewer for current tables and rows
-- a dedicated syntax reference page generated from backend-owned reference data
-- keyboard shortcut support for running SQL with `Ctrl` + `Enter`
-
-## Project Structure
-
-- `app.py`: Flask server and HTTP API routes
-- `executor.py`: lint-aware execution coordinator
-- `database.py`: SQLite execution, script splitting, transactional behavior, and table inspection
-- `linter.py`: Cambridge SQL linting rules and syntax reference source data
-- `frontend/`: vanilla HTML, CSS, and JavaScript UI
-- `tests/`: automated regression tests
-- `workspace/`: local SQLite database location, including `workspace/current.db`
-- `venv/`: project-local Python virtual environment
-
-## Getting Started
-
-### 1. Clone the repository
+Install a current Node.js LTS release, then run:
 
 ```bash
 git clone https://github.com/HanYC666/Cambridge-DBML.git
-cd Cambridge-DBML
+cd Cambridge-DBML/github-static
+npm ci
+npm run dev
 ```
 
-### 2. Create the project-local virtual environment
+Open the local address printed by Vite, normally `http://127.0.0.1:5173/`.
 
-Use a local virtual environment at `venv/`.
+To create the deployment bundle:
 
 ```bash
-python -m venv venv
+npm run build
 ```
 
-Activate it:
+The generated files are in `github-static/dist/`. They contain no backend API
+and can be hosted by any static web server.
 
-Linux / macOS:
+## Using The Workspace
+
+Start with a small Cambridge-style script:
+
+```sql
+CREATE TABLE Student (
+    StudentID INTEGER,
+    Name VARCHAR(30) NOT NULL,
+    PRIMARY KEY (StudentID)
+);
+
+INSERT INTO Student (StudentID, Name) VALUES (1, 'Amina');
+SELECT * FROM Student;
+```
+
+Run it with the button or `Ctrl`/`Cmd` + `Enter`. The result panel shows lint
+messages and query output. The table viewer updates after successful writes.
+
+## Saving Databases
+
+The static website does not send SQL or database contents to the server.
+
+- In Chromium-based browsers, the page shows **Open Database**, **Save Database
+  As**, and **Export Database**. Opening a real `.db`, `.sqlite`, or `.sqlite3`
+  file connects it for automatic live saving after every successful write.
+- In Firefox and Safari, the page shows **Import Database** and **Export
+  Database**. Import loads a copy into the browser; export saves the changed
+  copy as a download.
+- An in-memory database disappears when the tab closes. Export it or save it
+  to a file before leaving the page.
+
+## Raspberry Pi Zero W Deployment
+
+The Go server serves only static files. It has no SQL API, accepts only `GET`
+and `HEAD`, rejects `POST` and all other write methods, and stores no user data.
+
+Build the static bundle first, then cross-compile from a development machine:
 
 ```bash
-source venv/bin/activate
+cd github-static
+npm ci
+npm run build
+cd ..
+mkdir -p build
+GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o build/cambridge-dbml-pi .
 ```
 
-Windows:
+Run the binary behind Cloudflare Tunnel, nginx, or another TLS reverse proxy:
 
 ```bash
-venv\Scripts\activate
+LISTEN_ADDR=127.0.0.1:8080 ./build/cambridge-dbml-pi
 ```
 
-### 3. Install dependencies
+See [the Pi deployment guide](docs/PI_ZERO_DEPLOY.md) for Cloudflare cache
+rules, security guidance, and verification commands. Do not expose the Pi
+directly to the Internet or run the server as root.
+
+## Flask Development Mode
+
+The original Flask app remains available for Python development.
+
+Requirements: Python 3.10 or newer.
 
 ```bash
-pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python app.py
 ```
 
-### 4. Run the application
+Open `http://127.0.0.1:8001/`. The Flask API is for local development only;
+the static and Pi deployments do not expose it.
+
+## Tests
+
+Run Python regression tests:
 
 ```bash
-python3 app.py
+.venv/bin/python -m unittest discover -s tests
 ```
 
-### 5. Open the app
-
-Visit:
-
-- `http://127.0.0.1:8001/` for the SQL workspace
-- `http://127.0.0.1:8001/syntax` for the syntax reference
-
-## API Endpoints
-
-### `POST /api/execute`
-
-Execute SQL through the Cambridge-aware workflow.
-
-Request body:
-
-```json
-{
-  "sql": "SELECT * FROM Student;",
-  "run_anyway": false
-}
-```
-
-Behavior:
-
-- returns HTTP `400` if the request body is not a JSON object
-- returns HTTP `400` if `sql` is missing or not a string
-- returns `blocked_by_lint: true` when lint errors prevent execution
-- returns a `validated_only` result for supported Cambridge-only statements such as `CREATE DATABASE`
-
-Example response shape:
-
-```json
-{
-  "success": true,
-  "blocked_by_lint": false,
-  "lint": {
-    "errors": [],
-    "warnings": []
-  },
-  "result": {
-    "type": "select",
-    "columns": ["StudentID", "Name"],
-    "rows": [[1, "Amina"]],
-    "statements_run": 1
-  }
-}
-```
-
-Blocked example:
-
-```json
-{
-  "success": false,
-  "blocked_by_lint": true,
-  "lint": {
-    "errors": [
-      {
-        "line": 1,
-        "message": "Use the Cambridge 9618 datatype instead: VARCHAR(n)"
-      }
-    ],
-    "warnings": []
-  },
-  "result": null,
-  "error": "Execution blocked because the SQL has Cambridge 9618 lint errors."
-}
-```
-
-### `GET /api/tables`
-
-Returns the list of current table names.
-
-### `GET /api/table/<name>`
-
-Returns the selected table's columns and rows.
-
-Invalid or unknown table names return HTTP `400` with a JSON error body.
-
-### `GET /api/syntax`
-
-Returns the syntax reference data used by the `/syntax` page.
-
-## Testing
-
-Run the regression suite with the project-local virtual environment:
+Run static application tests:
 
 ```bash
-venv/bin/python -m unittest discover -s tests
+cd github-static
+npm ci
+npm test
+npm run test:browser
+npm run build
 ```
 
-The current test suite covers:
+`npm run test:browser` uses Playwright and may require browser binaries to be
+installed with `npx playwright install chromium`.
 
-- linter error and warning behavior
-- lint-blocked execution
-- `run_anyway` execution path
-- validated-only `CREATE DATABASE` handling
-- transactional rollback behavior
-- malformed API request handling
+Run Go server tests:
 
-## Notes
+```bash
+go test ./...
+```
 
-- The backend uses SQLite as a practice engine, but the learning goal is Cambridge-style SQL correctness rather than generic SQL portability.
-- Some Cambridge-valid syntax may be accepted as validated-only rather than executed directly if SQLite cannot represent it meaningfully in this environment.
-- The interface is intentionally low-motion and productivity-focused.
+## Project Layout
 
-## License & Warranty
+```text
+app.py, executor.py, database.py, linter.py  Original Flask application
+frontend/                                     Flask UI assets
+tests/                                        Python regression tests
+github-static/                                Static browser application and tests
+server.go                                     Read-only embedded Go static server
+docs/                                         Deployment and implementation notes
+build/                                        Ignored local build artifacts
+```
 
-> Disclaimer: This software comes with **ABSOLUTE NO WARRANTY**.
+## Security And Privacy
 
-- Open source: you may redistribute, modify, and use this software, but it must remain fully open-source.
-- Attribution: credit the original creator, **HanYC666**, when posting, publishing, or distributing this program or derived variants.
+- The static application keeps SQL execution and database bytes on the client.
+- The Go server has no login, session, upload, database, or write endpoint.
+- The Go server sends CSP, frame protection, MIME-sniffing, referrer,
+  permissions, COOP, and CORP headers.
+- Cloudflare can cache HTML and immutable assets at the edge; configure the
+  Cache Rule in `docs/PI_ZERO_DEPLOY.md` before public deployment.
 
-## AI Usage Disclaimer
+## Contributing
 
-GPT 5.6 Luna was used to format part of the code and enforce server security.
+Keep changes focused, add or update tests for behavioural changes, and run the
+relevant test commands before opening a pull request. The project currently
+has no `LICENSE` file; ask the maintainer before redistributing it.

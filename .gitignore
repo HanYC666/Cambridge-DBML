@@ -1,5 +1,43 @@
+# Python environments, caches, and test output
+.venv/
 venv/
 __pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local databases and environment-specific configuration
 workspace/current.db
+*.sqlite
+*.sqlite3
+*.db-journal
+.env
+.env.*
+!example.env
+
+# Node, browser-test, and static-build output
+node_modules/
+github-static/node_modules/
+dist/
+github-static/dist/
+test-results/
+github-static/test-results/
+playwright-report/
+github-static/playwright-report/
+
+# Locally compiled Go binaries and test executables
+build/
+cambridge-dbml-pi
+cambridge-dbml-server
+*.test
+
+# Operating-system and editor files
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local task notes are intentionally not versioned.
 task.md

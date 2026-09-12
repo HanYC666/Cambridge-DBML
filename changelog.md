@@ -12,6 +12,7 @@ Converted the practice application into a deployable static browser application 
 - Replaced browser calls to Flask endpoints with local JavaScript modules for linting, SQL execution, table inspection, and syntax-reference rendering.
 - Changed the static build to use relative asset paths so the generated site can be served from a custom domain root or a GitHub Pages project path.
 - Removed the Google Fonts dependency and updated the static CSP so all production application assets are locally served.
+- Changed database controls to select the safest workflow for the detected browser: Chromium-style File System Access browsers show Open, Save As, and Export, while other browsers show Import and Export.
 - Reworked `DatabaseManager` connection access to use an `RLock` and per-operation cursors, preventing shared-cursor interference between concurrent Flask requests.
 
 ### Added
@@ -25,13 +26,14 @@ Converted the practice application into a deployable static browser application 
 - Added a dependency-free Go server that embeds the built static site, serves only `GET` and `HEAD`, rejects all write methods with `405 Method Not Allowed`, restricts paths to known static files, and applies response timeouts and header-size limits.
 - Added CSP, MIME-sniffing, frame, referrer, permissions, COOP, and CORP security headers to the Go server.
 - Added Cloudflare-oriented cache headers: cacheable HTML with shared-cache revalidation and one-year immutable caching for versioned assets.
-- Added `PI_ZERO_DEPLOY.md` with Pi Zero W ARMv6 cross-compilation, unprivileged runtime, reverse-proxy, Cloudflare Cache Rule, and verification instructions.
+- Added `docs/PI_ZERO_DEPLOY.md` with Pi Zero W ARMv6 cross-compilation, unprivileged runtime, reverse-proxy, Cloudflare Cache Rule, and verification instructions.
 - Added Go server tests covering allowed methods, cache/security headers, traversal rejection, and unknown paths.
 
 ### Fixed
 
 - Fixed static WASM tests to load the checked-in runtime asset rather than assuming a package-local `node_modules` layout.
 - Fixed browser autosave so a script that writes data and finishes with `SELECT` still persists the changed database.
+- Fixed the Open Database workflow so the selected file handle remains connected and receives later live-save writes.
 - Fixed writable file-save failure handling so an open writable stream is aborted when writing fails.
 
 ## 2026-08-15 - v0.4.1
@@ -52,7 +54,7 @@ Documented the static GitHub Pages migration strategy before implementation bega
 
 ### Added
 
-- Added `github-static/implementation_plan.md` describing the browser SQLite architecture, static deployment model, client-owned database persistence, API replacement map, test plan, security considerations, and GitHub Pages deployment options.
+- Added `docs/static-migration-plan.md` describing the browser SQLite architecture, static deployment model, client-owned database persistence, API replacement map, test plan, security considerations, and GitHub Pages deployment options.
 
 ## 2026-07-18 - v0.3.1
 

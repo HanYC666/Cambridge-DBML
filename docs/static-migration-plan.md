@@ -53,8 +53,9 @@ Create a static app under `github-static/` that can be deployed directly to GitH
 Suggested directory structure:
 
 ```text
+docs/
+  static-migration-plan.md
 github-static/
-  implementation_plan.md
   index.html
   syntax.html
   assets/

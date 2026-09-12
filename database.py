@@ -1,11 +1,14 @@
 import sqlite3
 import os
 import re
+import threading
+
 
 # Table/field identifiers CIE syntax uses — letters, digits, underscore,
 # must start with a letter. Used to prevent SQL injection through the
 # /api/table/<name> endpoint, where `name` comes straight from the URL.
 _IDENTIFIER_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_]*$')
+
 _CREATE_DATABASE_RE = re.compile(
     r'^\s*CREATE\s+DATABASE\s+[A-Za-z][A-Za-z0-9_]*\s*$',
     re.IGNORECASE
@@ -34,8 +37,10 @@ def split_sql_statements(sql):
 
         if char == ";" and not in_single_quote:
             statement = "".join(current).strip()
+
             if statement:
                 statements.append(statement)
+
             current = []
         else:
             current.append(char)
@@ -43,6 +48,7 @@ def split_sql_statements(sql):
         i += 1
 
     tail = "".join(current).strip()
+
     if tail:
         statements.append(tail)
 
@@ -57,25 +63,53 @@ class DatabaseManager:
 
     def __init__(self, db_path="workspace/current.db"):
         self.db_path = db_path
+
         db_dir = os.path.dirname(db_path)
+
         if db_dir:
             os.makedirs(db_dir, exist_ok=True)
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.cursor = self.conn.cursor()
+
+        # One SQLite connection for this DatabaseManager.
+        #
+        # check_same_thread=False allows Flask requests handled by
+        # different threads to use the connection.
+        #
+        # Access to the connection is protected by self.lock below.
+        self.conn = sqlite3.connect(
+            self.db_path,
+            check_same_thread=False
+        )
+
+        # IMPORTANT:
+        # Do NOT keep a shared cursor as self.cursor.
+        #
+        # A cursor is created locally for each operation instead.
+        self.lock = threading.RLock()
 
     def execute(self, sql):
         """
-        Run a full SQL *script* (as CIE 9618 calls it), i.e. one or more
-        semicolon-separated statements. sqlite3's cursor.execute() only
-        accepts a single statement, so a script with e.g. an INSERT INTO
-        followed by a SELECT would previously fail. We split on ';' and
-        run each statement in turn, returning the result of the last
-        SELECT if there is one (or the total rows affected otherwise).
-        """
-        statements = split_sql_statements(sql)
-        if not statements:
-            return {"type": "write", "rows_affected": 0, "statements_run": 0}
+        Run a full SQL script (as CIE 9618 calls it), i.e. one or more
+        semicolon-separated statements.
 
+        sqlite3's cursor.execute() only accepts a single statement,
+        so a script is split on ';' and each statement is executed
+        separately.
+
+        The result of the final SELECT is returned, or the total number
+        of rows affected for write statements.
+        """
+
+        statements = split_sql_statements(sql)
+
+        if not statements:
+            return {
+                "type": "write",
+                "rows_affected": 0,
+                "statements_run": 0
+            }
+
+        # CREATE DATABASE is valid Cambridge syntax but is not executable
+        # by SQLite in this practice environment.
         if all(is_cambridge_only_statement(stmt) for stmt in statements):
             return {
                 "type": "validated_only",
@@ -86,6 +120,7 @@ class DatabaseManager:
                 "statements_run": 0,
             }
 
+        # Do not allow CREATE DATABASE to be mixed with executable SQL.
         if any(is_cambridge_only_statement(stmt) for stmt in statements):
             raise ValueError(
                 "CREATE DATABASE cannot be mixed with executable SQLite statements "
@@ -96,31 +131,52 @@ class DatabaseManager:
         total_rows_affected = 0
         statements_run = 0
 
-        try:
-            self.conn.execute("BEGIN")
+        # SQLite connections are not designed for multiple concurrent
+        # transactions. Protect the entire transaction with a lock.
+        with self.lock:
+            try:
+                self.conn.execute("BEGIN")
 
-            for stmt in statements:
-                self.cursor.execute(stmt)
-                statements_run += 1
+                for stmt in statements:
+                    # IMPORTANT:
+                    # Create a fresh cursor for every statement.
+                    cursor = self.conn.cursor()
 
-                if stmt.lstrip().lower().startswith("select"):
-                    columns = [desc[0] for desc in self.cursor.description]
-                    rows = self.cursor.fetchall()
-                    last_select_result = {
-                        "type": "select",
-                        "columns": columns,
-                        "rows": rows,
-                    }
-                else:
-                    total_rows_affected += max(self.cursor.rowcount, 0)
+                    cursor.execute(stmt)
+                    statements_run += 1
 
-            self.conn.commit()
-        except Exception:
-            self.conn.rollback()
-            raise
+                    if stmt.lstrip().lower().startswith("select"):
+                        columns = [
+                            desc[0]
+                            for desc in cursor.description
+                        ]
+
+                        rows = cursor.fetchall()
+
+                        last_select_result = {
+                            "type": "select",
+                            "columns": columns,
+                            "rows": rows,
+                        }
+
+                    else:
+                        total_rows_affected += max(
+                            cursor.rowcount,
+                            0
+                        )
+
+                    # Explicitly close this cursor.
+                    cursor.close()
+
+                self.conn.commit()
+
+            except Exception:
+                self.conn.rollback()
+                raise
 
         if last_select_result is not None:
             last_select_result["statements_run"] = statements_run
+
             return last_select_result
 
         return {
@@ -130,27 +186,80 @@ class DatabaseManager:
         }
 
     def get_tables(self):
-        self.cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        )
-        return [t[0] for t in self.cursor.fetchall()]
+        """
+        Return all user tables in the SQLite database.
+
+        A fresh cursor is used for this query so that this method cannot
+        interfere with another cursor operation.
+        """
+
+        with self.lock:
+            cursor = self.conn.cursor()
+
+            try:
+                cursor.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )
+
+                return [
+                    table[0]
+                    for table in cursor.fetchall()
+                ]
+
+            finally:
+                cursor.close()
 
     def fetch_table(self, table_name):
-        # table_name is user-controlled (comes from the URL path) and
-        # SQLite doesn't support parameterised identifiers, so validate
-        # it against a strict pattern AND the real table list before
-        # interpolating it into SQL — otherwise this is a straightforward
-        # SQL injection point (e.g. /api/table/x); DROP TABLE Customer;--).
+        """
+        Return all rows and column names from a table.
+
+        table_name comes from the URL, so it must be strictly validated
+        before being interpolated into SQL.
+        """
+
+        # Validate identifier syntax first.
         if not _IDENTIFIER_RE.match(table_name):
-            raise ValueError(f"'{table_name}' is not a valid table name.")
-        if table_name not in self.get_tables():
-            raise ValueError(f"Table '{table_name}' does not exist.")
+            raise ValueError(
+                f"'{table_name}' is not a valid table name."
+            )
 
-        self.cursor.execute(f"SELECT * FROM {table_name}")
-        rows = self.cursor.fetchall()
-        columns = [d[0] for d in self.cursor.description]
+        with self.lock:
 
-        return {
-            "columns": columns,
-            "rows": rows
-        }
+            # Check that the requested table actually exists.
+            if table_name not in self.get_tables():
+                raise ValueError(
+                    f"Table '{table_name}' does not exist."
+                )
+
+            # Fresh cursor for this query.
+            cursor = self.conn.cursor()
+
+            try:
+                # table_name has already passed strict identifier validation
+                # and has been checked against sqlite_master.
+                cursor.execute(
+                    f"SELECT * FROM {table_name}"
+                )
+
+                rows = cursor.fetchall()
+
+                columns = [
+                    description[0]
+                    for description in cursor.description
+                ]
+
+                return {
+                    "columns": columns,
+                    "rows": rows
+                }
+
+            finally:
+                cursor.close()
+
+    def close(self):
+        """
+        Close the SQLite connection cleanly.
+        """
+
+        with self.lock:
+            self.conn.close()
