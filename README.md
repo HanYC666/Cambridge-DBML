@@ -177,6 +177,4 @@ build/                                        Ignored local build artifacts
 
 ## Contributing
 
-Keep changes focused, add or update tests for behavioural changes, and run the
-relevant test commands before opening a pull request. The project currently
-has no `LICENSE` file; ask the maintainer before redistributing it.
+You must give full credit to me (HanYC666) when modifying, contributing, or redistributing this software. If you have a good idea of a new feature and want me to add it into this project, open an Issue on GitHub.
