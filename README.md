@@ -85,7 +85,7 @@ The static website does not send SQL or database contents to the server.
 - An in-memory database disappears when the tab closes. Export it or save it
   to a file before leaving the page.
 
-## Raspberry Pi Zero W Deployment
+## Raspberry Pi Zero W Deployment (currently not available)
 
 The Go server serves only static files. It has no SQL API, accepts only `GET`
 and `HEAD`, rejects `POST` and all other write methods, and stores no user data.
@@ -111,7 +111,7 @@ See [the Pi deployment guide](docs/PI_ZERO_DEPLOY.md) for Cloudflare cache
 rules, security guidance, and verification commands. Do not expose the Pi
 directly to the Internet or run the server as root.
 
-## Flask Development Mode
+## Flask Development Mode (available)
 
 The original Flask app remains available for Python development.
 
@@ -127,7 +127,7 @@ python3 -m venv .venv
 Open `http://127.0.0.1:8001/`. The Flask API is for local development only;
 the static and Pi deployments do not expose it.
 
-## Tests
+## Tests (currently not available)
 
 Run Python regression tests:
 
@@ -174,6 +174,10 @@ build/                                        Ignored local build artifacts
   permissions, COOP, and CORP headers.
 - Cloudflare can cache HTML and immutable assets at the edge; configure the
   Cache Rule in `docs/PI_ZERO_DEPLOY.md` before public deployment.
+
+## Cross-Platform Support
+
+Currently as of v0.4.1 there's only MacOS binary supports. The web version will roll out soon and will have cross-platform support without downloading anything.
 
 ## Contributing
 
