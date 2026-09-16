@@ -6,7 +6,7 @@
 
 Converted the practice application into a deployable static browser application and added a minimal, read-only Go server for secure Raspberry Pi Zero W hosting. The browser now performs linting, SQLite execution, table viewing, and database persistence locally; the server only distributes static assets.
 
-### changed
+### Changed
 
 - Moved the deployable application into `github-static/`, separating it from the retained Flask development application.
 - Replaced browser calls to Flask endpoints with local JavaScript modules for linting, SQL execution, table inspection, and syntax-reference rendering.
@@ -42,7 +42,7 @@ Converted the practice application into a deployable static browser application 
 
 Refined repository hygiene after the static migration planning work.
 
-### changed
+### Changed
 
 - Updated root ignore rules to exclude macOS `.DS_Store` metadata from version control.
 
@@ -62,7 +62,7 @@ Documented the static GitHub Pages migration strategy before implementation bega
 
 Adjusted the Flask development server documentation and runtime configuration for local network access.
 
-### changed
+### Changed
 
 - Updated the Flask server port configuration.
 - Updated README run instructions to match the locally accessible development server.
@@ -73,7 +73,7 @@ Adjusted the Flask development server documentation and runtime configuration fo
 
 Completed the first full application hardening pass: strict Cambridge lint gating, transactional execution, API validation, richer frontend diagnostics, syntax reference support, and automated Python regression coverage.
 
-### changed
+### Changed
 
 - Updated the Flask API to return structured JSON errors for malformed execution payloads and invalid table requests.
 - Updated the executor to block Cambridge lint errors by default while retaining an explicit `run_anyway` path.
@@ -103,7 +103,7 @@ Completed the first full application hardening pass: strict Cambridge lint gatin
 
 Expanded the project from a basic SQL editor into a Cambridge 9618-focused practice environment with syllabus-aware diagnostics and a dedicated syntax reference.
 
-### changed
+### Changed
 
 - Expanded the Cambridge linter to cover more datatype, key, quoting, out-of-syllabus, and table-count checks.
 - Updated the Flask application, database layer, README, workspace markup, and shared styles to support the broader learning workflow.
