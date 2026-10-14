@@ -1,36 +1,42 @@
 package main
 
 import (
-	"bytes"
-	"embed"
 	"fmt"
-	"io/fs"
 	"log"
 	"mime"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
 
 const (
 	defaultAddress = ":8080"
-	htmlCache      = "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800, stale-if-error=604800"
+	htmlCache      = "no-cache, max-age=0, must-revalidate"
 	assetCache     = "public, max-age=31536000, immutable"
 )
 
-//go:embed all:github-static/dist
-var siteFiles embed.FS
+var hashedAsset = regexp.MustCompile(`-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$`)
 
 type staticServer struct {
-	files map[string][]byte
+	siteDir string
 }
 
 func main() {
-	server, err := newStaticServer()
+	siteDir := os.Getenv("SITE_DIR")
+	if siteDir == "" {
+		executable, err := os.Executable()
+		if err != nil {
+			log.Fatalf("locate executable: %v", err)
+		}
+		siteDir = filepath.Dir(executable)
+	}
+	server, err := newStaticServer(siteDir)
 	if err != nil {
-		log.Fatalf("load embedded site: %v", err)
+		log.Fatalf("open site directory: %v", err)
 	}
 
 	address := os.Getenv("LISTEN_ADDR")
@@ -48,41 +54,23 @@ func main() {
 		MaxHeaderBytes:    8 << 10,
 	}
 
-	log.Printf("serving static Cambridge DBML site on %s", address)
+	log.Printf("serving static Cambridge DBML site from %s on %s", siteDir, address)
 	log.Fatal(httpServer.ListenAndServe())
 }
 
-func newStaticServer() (*staticServer, error) {
-	dist, err := fs.Sub(siteFiles, "github-static/dist")
+func newStaticServer(siteDir string) (*staticServer, error) {
+	siteDir, err := filepath.Abs(siteDir)
 	if err != nil {
 		return nil, err
 	}
-
-	files := make(map[string][]byte)
-	err = fs.WalkDir(dist, ".", func(name string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-		if entry.IsDir() {
-			return nil
-		}
-		if !entry.Type().IsRegular() {
-			return fmt.Errorf("embedded site contains non-regular file %q", name)
-		}
-		content, err := fs.ReadFile(dist, name)
-		if err != nil {
-			return err
-		}
-		files["/"+path.Clean(name)] = content
-		return nil
-	})
+	index, err := os.Stat(filepath.Join(siteDir, "index.html"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("index.html: %w", err)
 	}
-	if _, ok := files["/index.html"]; !ok {
-		return nil, fmt.Errorf("index.html is missing; run npm run build in github-static before compiling")
+	if !index.Mode().IsRegular() {
+		return nil, fmt.Errorf("index.html is not a regular file")
 	}
-	return &staticServer{files: files}, nil
+	return &staticServer{siteDir: siteDir}, nil
 }
 
 func (server *staticServer) ServeHTTP(response http.ResponseWriter, request *http.Request) {
@@ -94,28 +82,36 @@ func (server *staticServer) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
+	if request.URL.Path == "/syntax" || request.URL.Path == "/syntax.html" {
+		http.Redirect(response, request, "/#syntax", http.StatusMovedPermanently)
+		return
+	}
+
 	fileName, ok := requestedFile(request.URL.Path)
 	if !ok {
 		http.NotFound(response, request)
 		return
 	}
-	content, ok := server.files[fileName]
-	if !ok {
+	file, err := os.Open(filepath.Join(server.siteDir, filepath.FromSlash(strings.TrimPrefix(fileName, "/"))))
+	if err != nil {
+		http.NotFound(response, request)
+		return
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil || !info.Mode().IsRegular() {
 		http.NotFound(response, request)
 		return
 	}
 
 	setCacheHeaders(response.Header(), fileName)
 	response.Header().Set("Content-Type", contentType(fileName))
-	http.ServeContent(response, request, fileName, time.Time{}, bytes.NewReader(content))
+	http.ServeContent(response, request, fileName, info.ModTime(), file)
 }
 
 func requestedFile(requestPath string) (string, bool) {
 	if requestPath == "/" || requestPath == "/index.html" {
 		return "/index.html", true
-	}
-	if requestPath == "/syntax" || requestPath == "/syntax.html" {
-		return "/syntax.html", true
 	}
 	if !strings.HasPrefix(requestPath, "/assets/") || strings.Contains(requestPath, "\\") {
 		return "", false
@@ -124,6 +120,11 @@ func requestedFile(requestPath string) (string, bool) {
 	cleaned := path.Clean(requestPath)
 	if cleaned != requestPath || strings.Contains(cleaned, "..") {
 		return "", false
+	}
+	for _, segment := range strings.Split(strings.TrimPrefix(cleaned, "/assets/"), "/") {
+		if strings.HasPrefix(segment, ".") {
+			return "", false
+		}
 	}
 	return cleaned, true
 }
@@ -139,9 +140,9 @@ func setSecurityHeaders(headers http.Header) {
 }
 
 func setCacheHeaders(headers http.Header, fileName string) {
-	cacheControl := assetCache
-	if strings.HasSuffix(fileName, ".html") {
-		cacheControl = htmlCache
+	cacheControl := htmlCache
+	if hashedAsset.MatchString(fileName) {
+		cacheControl = assetCache
 	}
 	headers.Set("Cache-Control", cacheControl)
 	headers.Set("CDN-Cache-Control", cacheControl)

@@ -20,19 +20,26 @@ test("runs SQL locally, updates the table viewer, and exports a database", async
     expect((await download).suggestedFilename()).toBe("cambridge-practice.db");
 });
 
-test("renders syntax reference without an API request", async ({ page }) => {
+test("switches to the syntax tab without losing the workspace database", async ({ page }) => {
     const apiRequests = [];
     page.on("request", (request) => {
         if (request.url().includes("/api/")) apiRequests.push(request.url());
     });
 
-    await page.goto("/syntax.html");
+    await page.goto("/index.html");
+    await page.locator("#editor").fill("CREATE TABLE Student (StudentID INTEGER); INSERT INTO Student VALUES (1);");
+    await page.getByRole("button", { name: "Run Query" }).click();
+    await page.getByRole("tab", { name: "Syntax Reference" }).click();
+    await expect(page).toHaveURL(/#syntax$/);
     await expect(page.getByRole("heading", { name: "CREATE TABLE" })).toBeVisible();
     await page.getByRole("button", { name: "DML" }).click();
     await expect(page.getByRole("heading", { name: "SELECT ... FROM" })).toBeVisible();
-    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+    await page.locator("#theme-toggle").click();
     await expect(page.getByRole("button", { name: "DML" })).toHaveCSS("color", "rgb(247, 251, 255)");
     await expect(page.locator("#syntax-error")).toHaveCount(0);
+    await page.getByRole("tab", { name: "Workspace" }).click();
+    await expect(page.getByRole("button", { name: /Student/ })).toBeVisible();
+    await expect(page.locator("#editor")).toHaveValue("CREATE TABLE Student (StudentID INTEGER); INSERT INTO Student VALUES (1);");
     await expect(apiRequests).toEqual([]);
 });
 

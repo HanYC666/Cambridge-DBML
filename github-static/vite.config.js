@@ -24,10 +24,7 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        workspace: resolve("index.html"),
-        syntax: resolve("syntax.html")
-      }
+      input: resolve("index.html")
     }
   }
 });

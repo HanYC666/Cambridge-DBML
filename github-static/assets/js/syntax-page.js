@@ -1,21 +1,6 @@
 import { SYNTAX_REFERENCE } from "./syntax-reference.js";
 
-const THEME_STORAGE_KEY = "cambridge-dbml-theme";
 let activeFilter = "ALL";
-const themeToggleEl = document.getElementById("theme-toggle");
-
-function applyTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch (_error) { /* storage may be disabled */ }
-    if (themeToggleEl) themeToggleEl.querySelector(".theme-toggle-label").textContent = theme === "dark" ? "Light Mode" : "Dark Mode";
-}
-
-function setupTheme() {
-    let saved = null;
-    try { saved = localStorage.getItem(THEME_STORAGE_KEY); } catch (_error) { /* use default */ }
-    applyTheme(saved === "dark" ? "dark" : "light");
-    themeToggleEl?.addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
-}
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -37,12 +22,12 @@ function renderGrid() {
     });
 }
 
-setupTheme();
-document.querySelectorAll(".filter-btn").forEach((button) => button.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
-    activeFilter = button.dataset.filter;
+export function setupSyntaxReference() {
+    document.querySelectorAll(".filter-btn").forEach((button) => button.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        activeFilter = button.dataset.filter;
+        renderGrid();
+    }));
     renderGrid();
-}));
-document.getElementById("syntax-loading").style.display = "none";
-renderGrid();
+}

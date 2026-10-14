@@ -30,7 +30,7 @@ experiment with SQLite behaviour, but the warning remains visible.
 | --- | --- | --- |
 | Develop or preview the student website | `github-static/` | Recommended for the current application. Runs entirely in the browser. |
 | Work on the original Python application | Flask | Useful for the existing Python tests and API development. |
-| Host on a Raspberry Pi Zero W | Go static server | Embeds the built website in one read-only ARM binary. |
+| Host on a Raspberry Pi Zero W | Go static server | Reads the built website from disk; site updates do not require rebuilding the server. |
 
 ## Static Website Quick Start
 
@@ -85,12 +85,12 @@ The static website does not send SQL or database contents to the server.
 - An in-memory database disappears when the tab closes. Export it or save it
   to a file before leaving the page.
 
-## Raspberry Pi Zero W Deployment (currently not available)
+## Raspberry Pi Zero W Deployment
 
 The Go server serves only static files. It has no SQL API, accepts only `GET`
 and `HEAD`, rejects `POST` and all other write methods, and stores no user data.
 
-Build the static bundle first, then cross-compile from a development machine:
+Build the static bundle, then cross-compile the server from a development machine:
 
 ```bash
 cd github-static
@@ -98,18 +98,20 @@ npm ci
 npm run build
 cd ..
 mkdir -p build
-GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o build/cambridge-dbml-pi .
+GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o build/cambridge-dbml-armv6 .
 ```
 
-Run the binary behind Cloudflare Tunnel, nginx, or another TLS reverse proxy:
+Stage the site beside the binary, then copy the contents of `build/` to the Pi:
 
 ```bash
-LISTEN_ADDR=127.0.0.1:8080 ./build/cambridge-dbml-pi
+cp -R github-static/dist/. build/
 ```
 
-See [the Pi deployment guide](docs/PI_ZERO_DEPLOY.md) for Cloudflare cache
-rules, security guidance, and verification commands. Do not expose the Pi
-directly to the Internet or run the server as root.
+On the Pi, run the binary behind Cloudflare Tunnel, nginx, or another TLS
+reverse proxy with `LISTEN_ADDR=127.0.0.1:8080`. The server looks for
+`index.html` beside its executable by default. Set `SITE_DIR` to an absolute
+path for an atomic release directory. See [the Pi deployment
+guide](docs/PI_ZERO_DEPLOY.md) for the update process and verification commands.
 
 ## Flask Development Mode (available)
 
@@ -127,7 +129,7 @@ python3 -m venv .venv
 Open `http://127.0.0.1:8001/`. The Flask API is for local development only;
 the static and Pi deployments do not expose it.
 
-## Tests (currently not available)
+## Tests
 
 Run Python regression tests:
 
@@ -161,7 +163,7 @@ app.py, executor.py, database.py, linter.py  Original Flask application
 frontend/                                     Flask UI assets
 tests/                                        Python regression tests
 github-static/                                Static browser application and tests
-server.go                                     Read-only embedded Go static server
+server.go                                     Read-only Go static file server
 docs/                                         Deployment and implementation notes
 build/                                        Ignored local build artifacts
 ```
@@ -177,7 +179,9 @@ build/                                        Ignored local build artifacts
 
 ## Cross-Platform Support
 
-Currently as of v0.4.1 there's only MacOS binary supports. The web version will roll out soon and will have cross-platform support without downloading anything.
+The browser application works on modern desktop browsers. The Go server can be
+cross-compiled for the Raspberry Pi Zero W (Linux ARMv6); the original Flask
+application remains available for local development.
 
 ## Contributing
 

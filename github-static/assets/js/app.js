@@ -1,6 +1,7 @@
 import { BrowserDatabase } from "./sql-engine.js";
 import { BrowserExecutor } from "./executor.js";
 import { DatabaseStorage } from "./storage.js";
+import { setupSyntaxReference } from "./syntax-page.js";
 
 const THEME_STORAGE_KEY = "cambridge-dbml-theme";
 let database = null;
@@ -32,6 +33,31 @@ function setupTheme() {
     try { saved = localStorage.getItem(THEME_STORAGE_KEY); } catch (_error) { /* use default */ }
     applyTheme(saved === "dark" ? "dark" : "light");
     themeToggleEl?.addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+}
+
+function showSection() {
+    const syntax = location.hash === "#syntax";
+    document.getElementById("workspace-panel").hidden = syntax;
+    document.getElementById("syntax-panel").hidden = !syntax;
+    for (const [id, active] of [["workspace-tab", !syntax], ["syntax-tab", syntax]]) {
+        const tab = document.getElementById(id);
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+    }
+    document.title = syntax ? "Cambridge SQL Syntax Reference" : "Cambridge SQL Workspace";
+}
+
+function setupSections() {
+    showSection();
+    window.addEventListener("hashchange", showSection);
+    document.querySelector(".site-tabs").addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const target = location.hash === "#syntax" ? "workspace" : "syntax";
+        location.hash = event.key === "Home" ? "workspace" : event.key === "End" ? "syntax" : target;
+        document.getElementById(`${location.hash.slice(1)}-tab`).focus();
+    });
 }
 
 function updateStorageStatus(state) {
@@ -136,14 +162,14 @@ async function setupStorageControls() {
 }
 
 async function init() {
-    setupTheme(); storage = new DatabaseStorage(updateStorageStatus);
+    setupTheme(); setupSections(); setupSyntaxReference(); storage = new DatabaseStorage(updateStorageStatus);
     database = await storage.restoreHandle(BrowserDatabase) || await BrowserDatabase.createEmpty();
     executor = new BrowserExecutor(database, storage); await setupStorageControls(); loadTables();
 }
 
 runButtonEl?.addEventListener("click", () => runSQL(false));
 clearOutputEl?.addEventListener("click", clearOutput);
-document.addEventListener("keydown", (event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); runSQL(false); } });
+document.addEventListener("keydown", (event) => { if (!document.getElementById("workspace-panel").hidden && (event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); runSQL(false); } });
 init().catch((error) => renderOutput({ success: false, error: error.message, lint: { errors: [], warnings: [] } }));
 
 function escapeHTML(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }

@@ -1,10 +1,12 @@
 # Pi Zero W Deployment
 
-This server only serves the browser application. It stores no SQL, database
-files, sessions, uploads, or user data. `POST`, `PUT`, `PATCH`, `DELETE`, and
-every other non-read method return `405 Method Not Allowed`.
+The Go server reads a static site directory and accepts only `GET` and `HEAD`.
+SQL and database files remain in the visitor's browser. Website updates do not
+require recompiling the Go server or restarting systemd.
 
-Build the static site first, then compile the self-contained Linux ARM binary:
+## Build
+
+On a development machine:
 
 ```sh
 cd github-static
@@ -15,35 +17,67 @@ mkdir -p build
 GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o build/cambridge-dbml-armv6 .
 ```
 
-Copy `build/cambridge-dbml-pi` to the Pi and run it as an unprivileged account:
+The deployable site is the **entire** `github-static/dist/` directory, including
+`index.html`, hashed JavaScript and CSS, and `assets/vendor/sql-wasm.js` and
+`sql-wasm.wasm`. Copying only `index.html` will not work. You can rebuild and
+upload the site without rebuilding the server binary.
+
+## One-time Pi setup
+
+Copy `build/cambridge-dbml-armv6` to the Pi. Run it as an unprivileged account
+with a site directory readable by that account. By default, the server looks
+for `index.html` beside the executable. Set `SITE_DIR` to an absolute
+path to use another location; this is useful when the binary and site releases
+live in separate directories. For example:
 
 ```sh
-chmod 0755 build/cambridge-dbml-pi
-LISTEN_ADDR=127.0.0.1:8080 ./build/cambridge-dbml-pi
+LISTEN_ADDR=127.0.0.1:8080 SITE_DIR=/srv/cambridge-dbml/site /srv/cambridge-dbml/cambridge-dbml-armv6
 ```
 
-Put Cloudflare Tunnel, nginx, or another TLS reverse proxy in front of the
-loopback listener. Do not expose the Pi directly to the Internet and do not
-run the binary as root.
+The site directory must contain `index.html` when the service starts. If you
+already run the embedded server under systemd, install this binary and add
+`SITE_DIR` to the service configuration once, then restart it once. Subsequent
+site updates need no service action. Keep Cloudflare Tunnel, nginx, or another
+TLS reverse proxy in front of the loopback listener; do not expose the Pi
+directly to the Internet or run the binary as root.
 
-## Cloudflare caching
+## Website updates without downtime
 
-The server sends `Cache-Control`, `CDN-Cache-Control`, and
-`Cloudflare-CDN-Cache-Control` on every response. HTML has a Cloudflare TTL of
-one day with a seven-day stale-while-revalidate window; hashed JS/CSS/WASM
-assets are immutable for one year.
+Build the site on the development machine and upload the whole `dist/` tree to
+a new release directory on the Pi. For example, use a unique release name such
+as a timestamp:
 
-Create a Cloudflare Cache Rule for the public hostname:
+```sh
+ssh pi-host 'mkdir -p /srv/cambridge-dbml/releases/NEW_RELEASE'
+rsync -a github-static/dist/ pi-host:/srv/cambridge-dbml/releases/NEW_RELEASE/
+```
 
-1. Match `Hostname equals your-domain.example`.
-2. Set cache eligibility to **Eligible for cache** so Cloudflare caches HTML,
-   not only static-file extensions.
-3. Respect origin cache-control headers.
-4. Exclude any future administration hostname or path from that rule.
+If an old site is active, retain its hashed assets in the new release so
+browsers that loaded the old HTML can still finish loading:
 
-Purge the hostname cache after deploying a new binary when an immediate HTML
-update is required. The site has no API routes and uses no cookies, so it is
-safe to cache for all visitors.
+```sh
+ssh pi-host 'rsync -a --ignore-existing /srv/cambridge-dbml/site/assets/ /srv/cambridge-dbml/releases/NEW_RELEASE/assets/'
+```
+
+Check the new release has `index.html`, then switch the `site` symlink in one
+filesystem operation:
+
+```sh
+ssh pi-host 'test -f /srv/cambridge-dbml/releases/NEW_RELEASE/index.html && ln -s releases/NEW_RELEASE /srv/cambridge-dbml/site.next && mv -Tf /srv/cambridge-dbml/site.next /srv/cambridge-dbml/site'
+```
+
+The server opens files for each request, so it sees the new release after the
+switch while existing requests complete. For initial setup, create the `site`
+symlink before starting the service. Keep the previous release for rollback;
+switch the symlink back if needed. The commands assume the deployment account
+has write access to `/srv/cambridge-dbml` and that `site` is a symlink.
+
+## Caching
+
+HTML and unversioned vendor assets require revalidation. Hashed JS and CSS are
+immutable for one year. Configure Cloudflare to respect the origin's
+`Cache-Control` headers. After deploying a new release, a Cloudflare purge may
+still be useful if an existing custom Cache Rule overrides those headers.
 
 ## Verification
 
@@ -51,7 +85,9 @@ safe to cache for all visitors.
 go test ./...
 curl -I http://127.0.0.1:8080/
 curl -i -X POST http://127.0.0.1:8080/
+curl -I http://127.0.0.1:8080/syntax.html
 ```
 
-The first request must show the cache and security headers. The second must
-return `405` with `Allow: GET, HEAD`.
+The first request should show cache and security headers. The second must
+return `405` with `Allow: GET, HEAD`. The old syntax URL should redirect to
+`/#syntax`.

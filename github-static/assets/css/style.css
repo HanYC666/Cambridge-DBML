@@ -121,6 +121,16 @@ kbd {
     flex-wrap: wrap;
 }
 
+.site-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
 .nav-link,
 .theme-toggle {
     text-decoration: none;

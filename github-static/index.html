@@ -6,22 +6,24 @@
     <title>Cambridge SQL Workspace</title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body data-page="workspace">
+<body>
 <nav class="site-nav">
     <div class="brand-block">
         <div class="brand-kicker">Cambridge 9618 Practice</div>
         <div class="brand-title">Cambridge SQL Workspace</div>
     </div>
     <div class="site-links">
-        <a href="./index.html" class="nav-link active">Workspace</a>
-        <a href="./syntax.html" class="nav-link">Syntax Reference</a>
+        <div class="site-tabs" role="tablist" aria-label="Site sections">
+            <a id="workspace-tab" href="#workspace" class="nav-link active" role="tab" aria-controls="workspace-panel" aria-selected="true">Workspace</a>
+            <a id="syntax-tab" href="#syntax" class="nav-link" role="tab" aria-controls="syntax-panel" aria-selected="false">Syntax Reference</a>
+        </div>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
             <span class="theme-toggle-label">Dark Mode</span>
         </button>
     </div>
 </nav>
 
-<main class="workspace-shell">
+<main id="workspace-panel" class="workspace-shell" role="tabpanel" aria-labelledby="workspace-tab">
     <section class="hero-panel">
         <div class="hero-copy">
             <p class="eyebrow">Exam-style SQL, checked before execution</p>
@@ -124,6 +126,20 @@
             <div id="table-view-content" class="table-view-content"></div>
         </div>
     </section>
+</main>
+
+<main id="syntax-panel" class="syntax-shell" role="tabpanel" aria-labelledby="syntax-tab" hidden>
+    <section class="syntax-hero panel-card">
+        <p class="eyebrow">Reference</p>
+        <h1>CIE 9618 DDL and DML Syntax Guide</h1>
+        <p>Cambridge SQL syntax and examples for the practice workspace.</p>
+        <div class="syntax-filters">
+            <button class="filter-btn active" data-filter="ALL" type="button">All</button>
+            <button class="filter-btn" data-filter="DDL" type="button">DDL</button>
+            <button class="filter-btn" data-filter="DML" type="button">DML</button>
+        </div>
+    </section>
+    <section id="syntax-grid" class="syntax-grid"></section>
 </main>
 
 <script src="assets/vendor/sql-wasm.js"></script>

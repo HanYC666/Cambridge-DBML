@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-14 - v0.5.1
+
+### Changed
+
+- Merged the workspace and syntax reference into one `index.html` with bookmarkable tabs.
+- Changed the Go server to read site files beside the executable or from `SITE_DIR`, so website releases can be switched without restarting systemd.
+- Redirected old syntax URLs to the new tab and changed caching so HTML and unversioned assets revalidate while hashed assets remain immutable.
+- Updated the Pi deployment guide with an atomic release workflow and ARMv6 build instructions.
+- Included the pi0w deploy files at project root.
+
 ## 2026-09-08 - v0.5.0
 
 ### Summary
