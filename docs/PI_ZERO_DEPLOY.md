@@ -25,10 +25,10 @@ Run on the Pi:
 ```sh
 sudo apt-get update
 sudo apt-get install -y git ca-certificates curl
-sudo git clone https://github.com/HanYC666/Cambridge-DBML.git /root/cambridge-dbml
-sudo test -x /root/cambridge-dbml/cambridge-dbml-armv6
-sudo test -f /root/cambridge-dbml/index.html
-sudo test -f /root/cambridge-dbml/assets/vendor/sql-wasm.wasm
+sudo git clone https://github.com/HanYC666/Cambridge-DBML.git /root/Cambridge-DBML
+sudo test -x /root/Cambridge-DBML/cambridge-dbml-armv6
+sudo test -f /root/Cambridge-DBML/index.html
+sudo test -f /root/Cambridge-DBML/assets/vendor/sql-wasm.wasm
 ```
 
 The binary reads `index.html` and `assets/` beside itself, so this checkout is
@@ -44,9 +44,9 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/root/cambridge-dbml
+WorkingDirectory=/root/Cambridge-DBML
 Environment=LISTEN_ADDR=127.0.0.1:8011
-ExecStart=/root/cambridge-dbml/cambridge-dbml-armv6
+ExecStart=/root/Cambridge-DBML/cambridge-dbml-armv6
 Restart=on-failure
 RestartSec=3
 
@@ -66,7 +66,7 @@ as root because the checkout is under `/root`; keep the listener on loopback.
 After pushing a new commit to GitHub, run on the Pi:
 
 ```sh
-sudo git -C /root/cambridge-dbml pull --ff-only
+sudo git -C /root/Cambridge-DBML pull --ff-only
 ```
 
 The server opens website files for each request, so HTML and asset changes are
