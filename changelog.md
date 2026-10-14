@@ -5,6 +5,7 @@
 ### Changed
 
 - Added a website footer with the project GitHub link and Yichen Han's copyright credit.
+- Set the Go server's default port to 8011 and simplified the Pi service guide for a checkout at `/root/cambridge-dbml`.
 - Archived the original Flask server, frontend, Python tests, and requirements under `deprecated-flask/`, including the local SQLite database.
 - Added the built static assets beside the root Pi binary and `index.html` so the root deployment layout serves its referenced files.
 - Merged the workspace and syntax reference into one `index.html` with bookmarkable tabs.

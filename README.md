@@ -97,7 +97,7 @@ and `HEAD`, rejects `POST` and all other write methods, and stores no user data.
 The Pi can clone this repository and run the included ARMv6 binary and website
 under systemd. Follow [the Pi deployment guide](docs/PI_ZERO_DEPLOY.md) for
 installation, verification, and website updates without restarting the service.
-The service listens on `127.0.0.1:8080` behind Cloudflare Tunnel, nginx, or
+The service listens on `127.0.0.1:8011` behind Cloudflare Tunnel, nginx, or
 another TLS reverse proxy.
 
 ## Archived Flask App

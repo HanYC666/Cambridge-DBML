@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultAddress = ":8080"
+	defaultAddress = ":8011"
 	htmlCache      = "no-cache, max-age=0, must-revalidate"
 	assetCache     = "public, max-age=31536000, immutable"
 )
