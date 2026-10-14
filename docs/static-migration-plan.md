@@ -1,5 +1,8 @@
 # GitHub Pages Static Website Implementation Plan
 
+This is a historical plan. The Flask paths below now live under
+`deprecated-flask/`; the current browser app is in `github-static/`.
+
 ## Goal
 
 Convert Cambridge-DBML from a Flask + SQLite web app into a fully static GitHub Pages site hosted at `custom_name.github.io`, while keeping all SQL linting, SQL execution, database viewing, and persistence on the client's computer.

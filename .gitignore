@@ -11,6 +11,7 @@ htmlcov/
 
 # Local databases and environment-specific configuration
 workspace/current.db
+deprecated-flask/workspace/current.db
 *.sqlite
 *.sqlite3
 *.db-journal

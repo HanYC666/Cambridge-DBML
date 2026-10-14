@@ -4,11 +4,15 @@
 
 ### Changed
 
+- Added a website footer with the project GitHub link and Yichen Han's copyright credit.
+- Archived the original Flask server, frontend, Python tests, and requirements under `deprecated-flask/`, including the local SQLite database.
+- Added the built static assets beside the root Pi binary and `index.html` so the root deployment layout serves its referenced files.
 - Merged the workspace and syntax reference into one `index.html` with bookmarkable tabs.
 - Changed the Go server to read site files beside the executable or from `SITE_DIR`, so website releases can be switched without restarting systemd.
 - Redirected old syntax URLs to the new tab and changed caching so HTML and unversioned assets revalidate while hashed assets remain immutable.
 - Updated the Pi deployment guide with an atomic release workflow and ARMv6 build instructions.
 - Included the pi0w deploy files at project root.
+- Reworked the Pi deployment guide around cloning the repository, installing a systemd service, and switching website releases without restarting the service.
 
 ## 2026-09-08 - v0.5.0
 

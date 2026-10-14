@@ -6,8 +6,8 @@ DDL and DML, explains common Cambridge-specific mistakes, and lets them inspect
 the tables they create.
 
 The recommended production app is completely static: SQL linting, SQLite
-execution, and database files stay in the visitor's browser. The repository
-also keeps the original Flask app for local Python development and testing.
+execution, and database files stay in the visitor's browser. The original
+Flask app is archived in `deprecated-flask/` for reference and regression tests.
 
 ## What It Checks
 
@@ -29,7 +29,7 @@ experiment with SQLite behaviour, but the warning remains visible.
 | Goal | Use | Notes |
 | --- | --- | --- |
 | Develop or preview the student website | `github-static/` | Recommended for the current application. Runs entirely in the browser. |
-| Work on the original Python application | Flask | Useful for the existing Python tests and API development. |
+| Inspect or run the archived Python application | `deprecated-flask/` | Legacy Flask app and Python regression tests. |
 | Host on a Raspberry Pi Zero W | Go static server | Reads the built website from disk; site updates do not require rebuilding the server. |
 
 ## Static Website Quick Start
@@ -53,6 +53,10 @@ npm run build
 
 The generated files are in `github-static/dist/`. They contain no backend API
 and can be hosted by any static web server.
+
+The project root also contains a Pi ARMv6 binary, `index.html`, and its
+`assets/` directory as a ready-to-copy deployment layout. Keep the HTML and
+assets together when updating that layout.
 
 ## Using The Workspace
 
@@ -90,36 +94,21 @@ The static website does not send SQL or database contents to the server.
 The Go server serves only static files. It has no SQL API, accepts only `GET`
 and `HEAD`, rejects `POST` and all other write methods, and stores no user data.
 
-Build the static bundle, then cross-compile the server from a development machine:
+The Pi can clone this repository and run the included ARMv6 binary and website
+under systemd. Follow [the Pi deployment guide](docs/PI_ZERO_DEPLOY.md) for
+installation, verification, and website updates without restarting the service.
+The service listens on `127.0.0.1:8080` behind Cloudflare Tunnel, nginx, or
+another TLS reverse proxy.
 
-```bash
-cd github-static
-npm ci
-npm run build
-cd ..
-mkdir -p build
-GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o build/cambridge-dbml-armv6 .
-```
+## Archived Flask App
 
-Stage the site beside the binary, then copy the contents of `build/` to the Pi:
-
-```bash
-cp -R github-static/dist/. build/
-```
-
-On the Pi, run the binary behind Cloudflare Tunnel, nginx, or another TLS
-reverse proxy with `LISTEN_ADDR=127.0.0.1:8080`. The server looks for
-`index.html` beside its executable by default. Set `SITE_DIR` to an absolute
-path for an atomic release directory. See [the Pi deployment
-guide](docs/PI_ZERO_DEPLOY.md) for the update process and verification commands.
-
-## Flask Development Mode (available)
-
-The original Flask app remains available for Python development.
+The original Flask app is in `deprecated-flask/`. It is separate from the
+current static website and Pi deployment.
 
 Requirements: Python 3.10 or newer.
 
 ```bash
+cd deprecated-flask
 python3 -m venv .venv
 .venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install -r requirements.txt
@@ -134,6 +123,7 @@ the static and Pi deployments do not expose it.
 Run Python regression tests:
 
 ```bash
+cd deprecated-flask
 .venv/bin/python -m unittest discover -s tests
 ```
 
@@ -159,10 +149,9 @@ go test ./...
 ## Project Layout
 
 ```text
-app.py, executor.py, database.py, linter.py  Original Flask application
-frontend/                                     Flask UI assets
-tests/                                        Python regression tests
+deprecated-flask/                             Archived Flask app, UI, Python tests, and requirements
 github-static/                                Static browser application and tests
+index.html, assets/, cambridge-dbml-armv6      Root Pi deployment files
 server.go                                     Read-only Go static file server
 docs/                                         Deployment and implementation notes
 build/                                        Ignored local build artifacts
@@ -181,7 +170,7 @@ build/                                        Ignored local build artifacts
 
 The browser application works on modern desktop browsers. The Go server can be
 cross-compiled for the Raspberry Pi Zero W (Linux ARMv6); the original Flask
-application remains available for local development.
+application remains archived in `deprecated-flask/`.
 
 ## Contributing
 
