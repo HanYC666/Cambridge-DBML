@@ -161,11 +161,12 @@ method on systems with Go 1.22 or newer. Build the frontend first using the
 static build instructions above, then return to the repository root:
 
 ```bash
-go build -o cambridge-dbml server.go
-SITE_DIR="$PWD/github-static/dist" LISTEN_ADDR=127.0.0.1:8011 ./cambridge-dbml
+mkdir -p build
+go build -o build/cambridge-dbml server.go
+SITE_DIR="$PWD/github-static/dist" LISTEN_ADDR=127.0.0.1:8011 ./build/cambridge-dbml
 ```
 
-On Windows, build `cambridge-dbml.exe`, set `SITE_DIR` and `LISTEN_ADDR`
+On Windows, build `build/cambridge-dbml.exe`, set `SITE_DIR` and `LISTEN_ADDR`
 in your shell, and run the executable.
 
 The server reads files from `SITE_DIR`, or from the directory containing the
