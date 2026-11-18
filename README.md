@@ -28,6 +28,7 @@ experiment with SQLite behaviour, but the warning remains visible.
 
 | Goal | Use | Notes |
 | --- | --- | --- |
+| Run the static website in Docker | Docker Compose | Localhost-only deployment on port 8011. |
 | Develop or preview the student website | `github-static/` | Recommended for the current application. Runs entirely in the browser. |
 | Inspect or run the archived Python application | `deprecated-flask/` | Legacy Flask app and Python regression tests. |
 | Host on a Raspberry Pi Zero W | Go static server | Reads the built website from disk; site updates do not require rebuilding the server. |
@@ -57,6 +58,49 @@ and can be hosted by any static web server.
 The project root also contains a Pi ARMv6 binary, `index.html`, and its
 `assets/` directory as a ready-to-copy deployment layout. Keep the HTML and
 assets together when updating that layout.
+
+## Docker Deployment
+
+The Docker image builds the current static frontend from source and serves it
+with the existing read-only Go server. Node.js and Go are only needed during
+the image build. Docker Engine (28.0.0 or newer recommended) and the Docker
+Compose plugin are required on the host.
+
+From the repository root:
+
+```bash
+docker compose up -d --build
+```
+
+Open http://127.0.0.1:8011/. The default Compose configuration publishes the
+port on IPv4 loopback only, not on the LAN. The server listens on
+`0.0.0.0:8011` inside the container so Docker can forward the host port.
+SQL execution and database files still stay in the browser.
+
+Check the deployment:
+
+```bash
+docker compose ps
+curl -I http://127.0.0.1:8011/
+docker compose logs -f
+```
+
+After pulling updated source, rebuild and replace the container:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Stop and remove the container with `docker compose down`.
+
+Alternatively, without Compose (keep the explicit loopback binding):
+
+```bash
+docker build -t cambridge-dbml .
+docker run -d --name cambridge-dbml --restart unless-stopped \
+  -p 127.0.0.1:8011:8011 cambridge-dbml
+```
 
 ## Using The Workspace
 

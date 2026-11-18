@@ -1,0 +1,13 @@
+services:
+  cambridge-dbml:
+    build:
+      context: .
+    image: cambridge-dbml:local
+    ports:
+      - "127.0.0.1:8011:8011"
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
