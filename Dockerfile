@@ -9,7 +9,8 @@ RUN npm run build
 FROM golang:1.25-alpine AS server
 WORKDIR /build/server
 COPY go.mod server.go server_test.go ./
-RUN go test ./... && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/cambridge-dbml .
+ENV CGO_ENABLED=0
+RUN go test ./... && mkdir -p /out && go build -trimpath -ldflags="-s -w" -o /out/cambridge-dbml .
 
 FROM alpine:3.22
 COPY --from=server /out/cambridge-dbml /usr/local/bin/cambridge-dbml
