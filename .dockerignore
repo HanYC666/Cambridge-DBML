@@ -1,0 +1,15 @@
+# Only include files consumed by the Dockerfile.
+**
+!Dockerfile
+!.dockerignore
+!go.mod
+!server.go
+!server_test.go
+!github-static/
+!github-static/**
+github-static/node_modules/
+github-static/dist/
+github-static/.git/
+github-static/.env*
+github-static/playwright-report/
+github-static/test-results/

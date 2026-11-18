@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added Docker as a supported production deployment of the static browser app,
+  using a multi-stage Vite and Go build and localhost-only port 8011 via Compose.
+- Added a non-root container runtime, health check, and hardened Compose defaults.
+
+### Changed
+
+- Updated README and documentation index to describe Docker, native Go, static
+  hosting, Pi Zero W, frontend development, and the archived Flask app.
+- Clarified browser file-saving requirements, native Go and legacy Flask
+  listener defaults, deployment artifacts, and independent test commands.
+
 ## 2026-10-14 - v0.5.1
 
 ### Changed
